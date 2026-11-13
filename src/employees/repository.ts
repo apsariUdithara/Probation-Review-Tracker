@@ -107,6 +107,40 @@ export async function listExtensions(
   return rows;
 }
 
+export type OpenProbation = {
+  id: string;
+  name: string;
+  joinDate: string;
+  probationEndDate: string;
+  totalProbationMonths: number;
+  daysUntilEnd: number;
+};
+
+// Unconfirmed probations ending on or before today + withinDays. No lower bound, so overdue
+// rows are always included. `today` is a parameter, never CURRENT_DATE (DB-timezone dependent).
+// `status = 'on_probation'` is written literally so Postgres can use the partial index.
+export async function listOpenProbations(
+  db: Queryable,
+  companyId: string,
+  today: string,
+  withinDays: number,
+): Promise<OpenProbation[]> {
+  const { rows } = await db.query<OpenProbation>(
+    `SELECT id, name,
+            join_date AS "joinDate",
+            probation_end_date AS "probationEndDate",
+            total_probation_months AS "totalProbationMonths",
+            probation_end_date - $2::date AS "daysUntilEnd"  -- date - date = whole days
+     FROM employees
+     WHERE company_id = $1
+       AND status = 'on_probation'
+       AND probation_end_date <= $2::date + $3::int
+     ORDER BY probation_end_date, name, id`,
+    [companyId, today, withinDays],
+  );
+  return rows;
+}
+
 export async function insertAuditEvent(
   db: Queryable,
   companyId: string,
