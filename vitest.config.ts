@@ -1,9 +1,20 @@
 import { defineConfig } from 'vitest/config';
 
-// globalSetup (migrations) and fileParallelism: false are added in Phase 3,
-// when the first integration tests need the database.
+// Env vars come from `node --env-file-if-exists=.env` in the npm scripts, not from here.
 export default defineConfig({
   test: {
-    include: ['test/**/*.test.ts'],
+    projects: [
+      {
+        test: { name: 'unit', include: ['test/unit/**/*.test.ts'] },
+      },
+      {
+        test: {
+          name: 'integration',
+          include: ['test/integration/**/*.test.ts'],
+          globalSetup: ['test/global-setup.ts'],
+          fileParallelism: false, // files share one test database
+        },
+      },
+    ],
   },
 });
