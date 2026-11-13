@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:17
+        env:
+          POSTGRES_USER: probation
+          POSTGRES_PASSWORD: probation
+          POSTGRES_DB: probation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U probation -d probation"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+
+    # Same values as .env.example (there is no .env in CI; --env-file-if-exists skips it).
+    env:
+      DATABASE_URL: postgres://probation:probation@localhost:5432/probation
+      TEST_DATABASE_URL: postgres://probation:probation@localhost:5432/probation_test
+      APP_TIMEZONE: Asia/Colombo
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # Service containers can't mount files, so run the same init script docker-compose uses.
+      - name: Create test database
+        run: psql "$DATABASE_URL" -f docker/init-test-db.sql
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
