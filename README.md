@@ -87,7 +87,7 @@ Errors always look like `{ "error": { "code", "message" } }`. The main ones are 
 
 ![An HR user uses the optional React web page; curl and the tests call the API directly. Both send JSON to the Probation API (Node.js, Express), which stores data in PostgreSQL.](docs/diagrams/system-overview.svg)
 
-Requests pass through four layers: **middleware** identifies the company and user, **routes** validate the input, the **service** applies the business rules inside a database transaction, and the **repository** runs the SQL.
+Requests pass through four layers: **middleware** identifies the company and user, **routes** validate the input, the **service** applies the business rules (every change runs in a database transaction), and the **repository** runs the SQL.
 
 See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for diagrams of every flow, the full design decisions, all assumptions and the project structure.
 
@@ -110,7 +110,7 @@ The full list is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#assumptions).
 
 ## Testing
 
-160 automated tests run against a real PostgreSQL database, including the required edge cases:
+168 automated tests: unit tests for the business rules and date logic, and integration tests that run against a real PostgreSQL database. They include the required edge cases:
 
 | Edge case | Result |
 |---|---|

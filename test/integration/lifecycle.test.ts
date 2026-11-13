@@ -252,6 +252,7 @@ describe('POST /employees/:id/extensions', () => {
     ['missing reason', 1, undefined],
     ['blank reason', 1, '   '],
     ['reason of 501 characters', 1, 'a'.repeat(501)],
+    ['reason containing a NUL character (regression: was a 500)', 1, 'x\u0000y'],
   ])('%s -> 400 and nothing changes', async (_case, months, reason) => {
     const id = await createEmployee();
     const before = await snapshot(id);

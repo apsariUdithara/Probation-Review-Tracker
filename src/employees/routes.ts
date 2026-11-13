@@ -24,8 +24,18 @@ import {
 // HTTP only: validate input with Zod, call the service, choose the status code.
 // A ZodError thrown here becomes 400 VALIDATION_ERROR in the error handler.
 
+// Free text, trimmed. PostgreSQL can't store the NUL character in text columns, so it is
+// rejected here as a 400 instead of failing in the database as a 500.
+const text = (max: number) =>
+  z
+    .string()
+    .trim()
+    .min(1)
+    .max(max)
+    .refine((s) => !s.includes('\u0000'), 'Must not contain NUL characters');
+
 const createEmployeeBody = z.strictObject({
-  name: z.string().trim().min(1).max(200),
+  name: text(200),
   joinDate: z.string().refine(isValidIsoDate, 'Must be a real calendar date as YYYY-MM-DD'),
   probationMonths: z.int().min(MIN_PROBATION_MONTHS).max(MAX_PROBATION_MONTHS),
 });
@@ -47,7 +57,7 @@ const confirmBody = z.strictObject({}).optional();
 
 const extensionBody = z.strictObject({
   months: z.int().min(MIN_EXTENSION_MONTHS).max(MAX_EXTENSION_MONTHS),
-  reason: z.string().trim().min(1).max(500),
+  reason: text(500),
 });
 
 // A malformed id can't match any employee, so it gets the same 404 as "not found".

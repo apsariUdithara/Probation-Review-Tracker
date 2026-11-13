@@ -39,6 +39,19 @@ if (!databaseUrl) {
   console.error('DATABASE_URL is not set (copy .env.example to .env)');
   process.exit(1);
 }
+// Safety guard: the seed deletes all data, so it only runs against a local development
+// database. A remote host or a *_test database (owned by the test suite) is refused.
+const target = new URL(databaseUrl);
+const dbName = target.pathname.slice(1);
+const isLocalHost = ['localhost', '127.0.0.1', '[::1]'].includes(target.hostname);
+if (!isLocalHost || dbName.endsWith('_test')) {
+  console.error(
+    `Refusing to seed "${dbName}" on ${target.hostname}: the seed deletes all data, ` +
+      'so it only runs against a local development database.',
+  );
+  process.exit(1);
+}
+
 const today = todayIn(process.env.APP_TIMEZONE ?? 'Asia/Colombo');
 
 const client = new pg.Client({ connectionString: databaseUrl });

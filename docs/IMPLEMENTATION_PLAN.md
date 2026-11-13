@@ -1,8 +1,6 @@
 # Probation Review Tracker: Implementation Plan
 
-> Status: plan only. No application code yet. Each phase ends with a commit and a set of passing tests. Do not start a phase until the previous phase's "Tests that must pass" are green.
->
-> **Architecture frozen.** Change it only if implementation reveals a concrete technical problem.
+> **This is the original plan, written before any code.** It is kept to show how the project was planned. The implementation follows it, with a few changes made along the way. For the current design, see [ARCHITECTURE.md](ARCHITECTURE.md) and the [README](../README.md).
 >
 > **Submission:** public GitHub link to careers@hiremira.ai by Fri 13 Nov 2026, at the latest **Sat 14 Nov 2026, 11:59 PM Sri Lanka time**. Full scope is planned: nothing is cut.
 

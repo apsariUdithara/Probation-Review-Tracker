@@ -63,11 +63,17 @@ describe('POST /employees', () => {
     ['missing name', { joinDate: VALID.joinDate, probationMonths: 3 }],
     ['extra field companyId', { ...VALID, companyId: '11111111-1111-4111-8111-111111111111' }],
     ['array body', [VALID]],
+    ['name containing a NUL character (regression: was a 500)', { ...VALID, name: 'Ann\u0000a' }],
   ])('%s -> 400 and nothing written', async (_case, body) => {
     const res = await client.post('/employees', body as object);
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
     expect(await employeeCount()).toBe(0);
+  });
+
+  it('names the field and the reason when a NUL character is rejected', async () => {
+    const res = await client.post('/employees', { ...VALID, name: 'Ann\u0000a' });
+    expect(res.body.error.details).toEqual([{ path: 'name', message: 'Must not contain NUL characters' }]);
   });
 
   it('accepts a name of exactly 200 characters', async () => {

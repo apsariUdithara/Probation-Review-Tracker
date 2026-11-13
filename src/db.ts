@@ -8,7 +8,14 @@ pg.types.setTypeParser(pg.types.builtins.DATE, (value) => value);
 export type Queryable = pg.Pool | pg.PoolClient;
 
 export function createPool(connectionString: string): pg.Pool {
-  return new pg.Pool({ connectionString });
+  const pool = new pg.Pool({ connectionString });
+  // An idle client can lose its connection (database restart, network drop). pg then emits
+  // 'error' on the pool, and an unhandled 'error' event would crash the process. The pool has
+  // already discarded the broken client and opens a new one on the next query, so log and go on.
+  pool.on('error', (err) => {
+    console.error('Idle database connection lost:', err.message);
+  });
+  return pool;
 }
 
 // Runs `fn` inside BEGIN/COMMIT on ONE checked-out client (a transaction lives on a single
