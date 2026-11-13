@@ -1,7 +1,9 @@
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-// Generates the architecture diagrams in docs/diagrams/ (a light and a dark SVG each).
+// Generates the architecture diagrams in docs/diagrams/, one SVG per diagram. Each SVG is
+// drawn in the light colours and switches itself to the dark colours when the viewer prefers
+// a dark theme, so a plain Markdown image works in GitHub, VS Code and anywhere else.
 // Run: npm run diagrams. Change the diagram data below, never the SVG files.
 
 type Theme = {
@@ -21,7 +23,7 @@ const LIGHT: Theme = {
   bg: '#ffffff',
   ink: '#1f2633',
   muted: '#66708a',
-  box: { fill: '#ffffff', stroke: '#7d88a6' },
+  box: { fill: '#fdfdff', stroke: '#7d88a6' }, // not #ffffff: every light colour must be unique (see darkModeStyle)
   main: { fill: '#eef2ff', stroke: '#3b5bdb' },
   db: { fill: '#e7f6f8', stroke: '#0b7285' },
   ok: '#2b8a3e',
@@ -604,10 +606,34 @@ const DIAGRAMS: Record<string, (t: Theme) => string> = {
   'list-grouping': listGrouping,
 };
 
+// CSS that recolours the light drawing for dark mode. CSS rules beat SVG presentation
+// attributes, so [fill="<light>"] { fill: <dark> } swaps each colour in place.
+function darkModeStyle(): string {
+  const pairs: [string, string][] = [
+    [LIGHT.bg, DARK.bg],
+    [LIGHT.ink, DARK.ink],
+    [LIGHT.muted, DARK.muted],
+    [LIGHT.box.fill, DARK.box.fill],
+    [LIGHT.box.stroke, DARK.box.stroke],
+    [LIGHT.main.fill, DARK.main.fill],
+    [LIGHT.main.stroke, DARK.main.stroke],
+    [LIGHT.db.fill, DARK.db.fill],
+    [LIGHT.db.stroke, DARK.db.stroke],
+    [LIGHT.ok, DARK.ok],
+    [LIGHT.err, DARK.err],
+  ];
+  if (new Set(pairs.map(([light]) => light)).size !== pairs.length) {
+    throw new Error('Every light colour must be unique, or dark mode would swap the wrong one');
+  }
+  const rules = pairs.map(([l, d]) => `[fill="${l}"]{fill:${d}}[stroke="${l}"]{stroke:${d}}`).join('');
+  return `<style>@media (prefers-color-scheme: dark){${rules}}</style>`;
+}
+
 const outDir = join(import.meta.dirname, '..', 'docs', 'diagrams');
 mkdirSync(outDir, { recursive: true });
 for (const f of readdirSync(outDir)) if (f.endsWith('.svg')) rmSync(join(outDir, f)); // drop stale diagrams
+const style = darkModeStyle();
 for (const [name, draw] of Object.entries(DIAGRAMS)) {
-  for (const theme of [LIGHT, DARK]) writeFileSync(join(outDir, `${name}-${theme.name}.svg`), draw(theme));
+  writeFileSync(join(outDir, `${name}.svg`), draw(LIGHT).replace('</defs>', `</defs>${style}`));
 }
-console.log(`Wrote ${Object.keys(DIAGRAMS).length * 2} SVG files to docs/diagrams/`);
+console.log(`Wrote ${Object.keys(DIAGRAMS).length} SVG files to docs/diagrams/`);

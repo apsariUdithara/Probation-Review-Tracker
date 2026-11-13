@@ -163,10 +163,7 @@ The diagrams are generated from [`scripts/gen-diagrams.ts`](scripts/gen-diagrams
 
 An HR user works through the optional web page, and other tools (curl, the automated tests) call the API directly. Either way, the request reaches one backend service, the **Probation API**, which does all the checking and saves everything in **PostgreSQL**. The web page holds no business logic: it only displays what the API returns.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/system-overview-dark.svg">
-  <img src="docs/diagrams/system-overview-light.svg" alt="An HR user uses the optional React web page; curl and the tests call the API directly. Both send JSON to the Probation API (Node.js, Express), which stores data in PostgreSQL.">
-</picture>
+![An HR user uses the optional React web page; curl and the tests call the API directly. Both send JSON to the Probation API (Node.js, Express), which stores data in PostgreSQL.](docs/diagrams/system-overview.svg)
 
 #### API layers
 
@@ -179,19 +176,13 @@ Inside the API, every request passes down the same stack, and each layer has one
 
 The rules themselves live in a separate **Domain** module with no database code, so they can be tested on their own. If anything goes wrong at any layer, the **Error handler** turns it into a clear JSON error.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/api-layers-dark.svg">
-  <img src="docs/diagrams/api-layers-light.svg" alt="Middleware (tenant.ts) reads company and user, routes (routes.ts) validate with Zod, the service (service.ts) applies rules and transactions, the repository (repository.ts) runs SQL scoped by company_id. The service uses pure rules in domain/probation.ts. Any error goes to error-handler.ts.">
-</picture>
+![Middleware (tenant.ts) reads company and user, routes (routes.ts) validate with Zod, the service (service.ts) applies rules and transactions, the repository (repository.ts) runs SQL scoped by company_id. The service uses pure rules in domain/probation.ts. Any error goes to error-handler.ts.](docs/diagrams/api-layers.svg)
 
 #### Where each response comes from
 
 This is the same journey drawn left to right, with every error the API can return placed under the step that produces it. For example, a missing company header is stopped at the second step (401), while "already confirmed" is only discovered by the service (409). A successful request comes back from the routes with 200 or 201. All errors leave through the same error handler, so they always have the same shape.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/error-map-dark.svg">
-  <img src="docs/diagrams/error-map-light.svg" alt="Stages express.json, tenantMiddleware, routes, service, PostgreSQL. Success 200 or 201 comes from the routes. Errors: 400 INVALID_JSON and 413; 401 UNAUTHENTICATED; 400 VALIDATION_ERROR and 404 for a malformed id; 404 EMPLOYEE_NOT_FOUND, 409 ALREADY_CONFIRMED, 422 MAX_PROBATION_EXCEEDED; 422 CONSTRAINT_VIOLATION and 500. All go through errorHandler.">
-</picture>
+![Stages express.json, tenantMiddleware, routes, service, PostgreSQL. Success 200 or 201 comes from the routes. Errors: 400 INVALID_JSON and 413; 401 UNAUTHENTICATED; 400 VALIDATION_ERROR and 404 for a malformed id; 404 EMPLOYEE_NOT_FOUND, 409 ALREADY_CONFIRMED, 422 MAX_PROBATION_EXCEEDED; 422 CONSTRAINT_VIOLATION and 500. All go through errorHandler.](docs/diagrams/error-map.svg)
 
 ### The data
 
@@ -206,10 +197,7 @@ Two details do important work:
 
 Extensions and audit events point to their employee *together with the company*, using `(company_id, employee_id)`. That makes it impossible to attach a record to another company's employee.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/data-model-dark.svg">
-  <img src="docs/diagrams/data-model-light.svg" alt="Entity-relationship diagram: companies to employees one to many; employees to probation_extensions and audit_events one to many through the composite foreign key (company_id, employee_id). CHECK 1 to 6 on total months, CHECK 1 to 3 on extension months, generated end date.">
-</picture>
+![Entity-relationship diagram: companies to employees one to many; employees to probation_extensions and audit_events one to many through the composite foreign key (company_id, employee_id). CHECK 1 to 6 on total months, CHECK 1 to 3 on extension months, generated end date.](docs/diagrams/data-model.svg)
 
 #### Company isolation
 
@@ -220,10 +208,7 @@ Each company can only ever see its own employees, and this is enforced twice:
 
 A dedicated test (`isolation.test.ts`) checks every endpoint from the other company's side.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/company-isolation-dark.svg">
-  <img src="docs/diagrams/company-isolation-light.svg" alt="A request with X-Company-Id A gets WHERE company_id = A on every query, so only Company A employees are returned and Company B ones give 404. In the database the composite foreign key blocks cross-company rows.">
-</picture>
+![A request with X-Company-Id A gets WHERE company_id = A on every query, so only Company A employees are returned and Company B ones give 404. In the database the composite foreign key blocks cross-company rows.](docs/diagrams/company-isolation.svg)
 
 ### The main flows
 
@@ -237,19 +222,13 @@ An employee is either **on probation** or **confirmed**:
 
 "Overdue" and "due soon" are not stored anywhere. They are worked out from the end date every time the list is requested, so they are always correct.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/employee-lifecycle-dark.svg">
-  <img src="docs/diagrams/employee-lifecycle-light.svg" alt="State diagram: add employee starts On probation; extend loops while the total is at most 6 months, over 6 gives 422; confirm moves to Confirmed; confirming or extending again gives 409.">
-</picture>
+![State diagram: add employee starts On probation; extend loops while the total is at most 6 months, over 6 gives 422; confirm moves to Confirmed; confirming or extending again gives 409.](docs/diagrams/employee-lifecycle.svg)
 
 #### Add an employee
 
 The API first checks the input: a real calendar date, 1–6 months, and a name. If anything is wrong it answers 400 and saves nothing. Otherwise it saves the employee and an "employee created" audit record **in one transaction**, so both are saved or neither is. The database fills in the end date.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/sequence-add-employee-dark.svg">
-  <img src="docs/diagrams/sequence-add-employee-light.svg" alt="Sequence diagram: validate with Zod; if valid, BEGIN, insertEmployee, insertAuditEvent, COMMIT, 201 Created; if invalid, 400 VALIDATION_ERROR.">
-</picture>
+![Sequence diagram: validate with Zod; if valid, BEGIN, insertEmployee, insertAuditEvent, COMMIT, 201 Created; if invalid, 400 VALIDATION_ERROR.](docs/diagrams/sequence-add-employee.svg)
 
 #### Confirm an employee
 
@@ -259,10 +238,7 @@ Before doing anything, the API **locks** the employee's row, so no one else can 
 - **Already confirmed:** undo, and return 409. This is the "cannot be confirmed twice" rule.
 - **Not found** (or belongs to another company): undo, and return 404.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/sequence-confirm-dark.svg">
-  <img src="docs/diagrams/sequence-confirm-light.svg" alt="Sequence diagram: BEGIN and lockEmployee; if on probation, markConfirmed, insertAuditEvent, COMMIT, 200; if already confirmed, ROLLBACK and 409; if not found, ROLLBACK and 404.">
-</picture>
+![Sequence diagram: BEGIN and lockEmployee; if on probation, markConfirmed, insertAuditEvent, COMMIT, 200; if already confirmed, ROLLBACK and 409; if not found, ROLLBACK and 404.](docs/diagrams/sequence-confirm.svg)
 
 #### Extend a probation
 
@@ -270,10 +246,7 @@ This works like confirming: lock the row first, then check. If the employee is s
 
 If the new total would go **over 6 months**, the request is refused (422) **before anything is written**, so the employee's total, end date and history stay exactly as they were. This is one of the required edge cases.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/sequence-extend-dark.svg">
-  <img src="docs/diagrams/sequence-extend-light.svg" alt="Sequence diagram: BEGIN and lockEmployee; if on probation and within 6 months, addProbationMonths, insertExtension, insertAuditEvent, COMMIT, 201; if over 6 months, ROLLBACK and 422; if confirmed or not found, ROLLBACK and 409 or 404.">
-</picture>
+![Sequence diagram: BEGIN and lockEmployee; if on probation and within 6 months, addProbationMonths, insertExtension, insertAuditEvent, COMMIT, 201; if over 6 months, ROLLBACK and 422; if confirmed or not found, ROLLBACK and 409 or 404.](docs/diagrams/sequence-extend.svg)
 
 ### The edge cases
 
@@ -283,10 +256,7 @@ Suppose two HR users click "confirm" on the same employee at the same moment. Re
 
 Extensions are protected the same way: two "+3 months" requests on a 3-month probation give one success and one refusal, never a 9-month total.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/sequence-concurrent-confirm-dark.svg">
-  <img src="docs/diagrams/sequence-concurrent-confirm-light.svg" alt="Sequence diagram: request A locks the row with SELECT FOR UPDATE, request B waits; A updates, writes the audit event and commits, returning 200; B re-reads the row as confirmed, rolls back and returns 409.">
-</picture>
+![Sequence diagram: request A locks the row with SELECT FOR UPDATE, request B waits; A updates, writes the audit event and commits, returning 200; B re-reads the row as confirmed, rolls back and returns 409.](docs/diagrams/sequence-concurrent-confirm.svg)
 
 #### How the list is grouped
 
@@ -299,10 +269,7 @@ For each employee still on probation, the API counts the days from today to the 
 
 A probation that **ends today** counts as **due, not overdue**. That's another required edge case. "Today" is always the date in Sri Lanka (Asia/Colombo), whatever timezone the server runs in.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/list-grouping-dark.svg">
-  <img src="docs/diagrams/list-grouping-light.svg" alt="Day axis of days until end: below 0 Overdue, 0 to 7 Due in 7 days, 8 to 30 Due in 30 days, 31 to N Due later.">
-</picture>
+![Day axis of days until end: below 0 Overdue, 0 to 7 Due in 7 days, 8 to 30 Due in 30 days, 31 to N Due later.](docs/diagrams/list-grouping.svg)
 ## Design decisions
 
 **Layers.** `routes` (validation, status codes) → `service` (use cases, transactions) → `repository` (SQL only). Pure business rules live in `src/domain/` and have no database or HTTP code. `createApp({ pool, clock })` builds the app without opening a port, so tests inject the test database and a fixed date.
