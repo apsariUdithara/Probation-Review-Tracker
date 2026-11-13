@@ -29,9 +29,25 @@ npm run seed                  # add demo data (prints two company ids)
 npm run dev                   # start the API on http://localhost:3000
 ```
 
-To run the tests: `npm test` (Docker must be running).
-
 To open the optional web page, keep the API running and in a second terminal run `npm ci --prefix web && npm run dev --prefix web`, then open http://localhost:5173.
+
+### Useful commands
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start the API and restart it when files change |
+| `npm start` | Start the API without auto-restart |
+| `npm test` | Run all tests (Docker must be running) |
+| `npm run test:unit` | Run only the fast tests that don't need the database |
+| `npm run typecheck` | Check the TypeScript types |
+| `npm run migrate` / `npm run migrate:down` | Apply all migrations / undo the last one |
+| `npm run seed` | Replace all data with the demo data |
+| `npm run diagrams` | Regenerate the architecture diagrams |
+| `npm run build --prefix web` | Build the web page |
+| `docker compose down` | Stop the database (keeps the data) |
+| `docker compose down -v` | Stop the database and delete all data, including the test database |
+
+If port 5432 is already in use, stop the other PostgreSQL or change the port in `docker-compose.yml` and `.env`.
 
 ## API
 
@@ -46,10 +62,21 @@ To open the optional web page, keep the API running and in a second terminal run
 
 Every request needs two headers: `X-Company-Id` (the company) and `X-Actor-Id` (who is making the change).
 
+For example, using a company created by `npm run seed`:
+
 ```sh
+# Add an employee
+curl -X POST localhost:3000/employees \
+  -H 'X-Company-Id: 11111111-1111-4111-8111-111111111111' -H 'X-Actor-Id: hr@acme.example' \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Amaya Herath","joinDate":"2024-02-29","probationMonths":3}'
+
+# List probations ending within 30 days
 curl -H 'X-Company-Id: 11111111-1111-4111-8111-111111111111' -H 'X-Actor-Id: hr@acme.example' \
   'localhost:3000/probations?withinDays=30'
 ```
+
+These are bash commands (macOS, Linux, or Git Bash on Windows).
 
 > [!NOTE]
 > These headers stand in for a login so the demo can act as different companies. They are not real authentication.
