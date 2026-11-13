@@ -33,32 +33,32 @@ To open the optional web page, keep the API running and in a second terminal run
 
 ### Useful commands
 
-| Command | What it does |
-|---|---|
-| `npm run dev` | Start the API and restart it when files change |
-| `npm start` | Start the API without auto-restart |
-| `npm test` | Run all tests (Docker must be running) |
-| `npm run test:unit` | Run only the fast tests that don't need the database |
-| `npm run typecheck` | Check the TypeScript types |
-| `npm run migrate` / `npm run migrate:down` | Apply all migrations / undo the last one |
-| `npm run seed` | Replace all data with the demo data |
-| `npm run diagrams` | Regenerate the architecture diagrams |
-| `npm run build --prefix web` | Build the web page |
-| `docker compose down` | Stop the database (keeps the data) |
-| `docker compose down -v` | Stop the database and delete all data, including the test database |
+| Command                                    | What it does                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------ |
+| `npm run dev`                              | Start the API and restart it when files change                     |
+| `npm start`                                | Start the API without auto-restart                                 |
+| `npm test`                                 | Run all tests (Docker must be running)                             |
+| `npm run test:unit`                        | Run only the fast tests that don't need the database               |
+| `npm run typecheck`                        | Check the TypeScript types                                         |
+| `npm run migrate` / `npm run migrate:down` | Apply all migrations / undo the last one                           |
+| `npm run seed`                             | Replace all data with the demo data                                |
+| `npm run diagrams`                         | Regenerate the architecture diagrams                               |
+| `npm run build --prefix web`               | Build the web page                                                 |
+| `docker compose down`                      | Stop the database (keeps the data)                                 |
+| `docker compose down -v`                   | Stop the database and delete all data, including the test database |
 
 If port 5432 is already in use, stop the other PostgreSQL or change the port in `docker-compose.yml` and `.env`.
 
 ## API
 
-| Endpoint | What it does |
-|---|---|
-| `POST /employees` | Add an employee: `{ name, joinDate, probationMonths }` |
-| `GET /employees/:id` | Get an employee and their extensions |
-| `GET /probations?withinDays=30` | List probations grouped by urgency |
-| `POST /employees/:id/confirmation` | Confirm an employee |
-| `POST /employees/:id/extensions` | Extend a probation: `{ months, reason }` |
-| `GET /employees/:id/audit-events` | Get the audit trail |
+| Endpoint                           | What it does                                           |
+| ---------------------------------- | ------------------------------------------------------ |
+| `POST /employees`                  | Add an employee: `{ name, joinDate, probationMonths }` |
+| `GET /employees/:id`               | Get an employee and their extensions                   |
+| `GET /probations?withinDays=30`    | List probations grouped by urgency                     |
+| `POST /employees/:id/confirmation` | Confirm an employee                                    |
+| `POST /employees/:id/extensions`   | Extend a probation: `{ months, reason }`               |
+| `GET /employees/:id/audit-events`  | Get the audit trail                                    |
 
 Every request needs two headers: `X-Company-Id` (the company) and `X-Actor-Id` (who is making the change).
 
@@ -112,23 +112,21 @@ The full list is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#assumptions).
 
 168 automated tests: unit tests for the business rules and date logic, and integration tests that run against a real PostgreSQL database. They include the required edge cases:
 
-| Edge case | Result |
-|---|---|
-| Probation ends today | Listed as due within 7 days, not overdue |
-| Join date of 29 February | 2024-02-29 + 3 months ends on 2024-05-29 |
-| Extension over 6 months | Rejected, and nothing changes |
-| One company viewing another's employees | Not found on every endpoint |
+| Edge case                               | Result                                   |
+| --------------------------------------- | ---------------------------------------- |
+| Probation ends today                    | Listed as due within 7 days, not overdue |
+| Join date of 29 February                | 2024-02-29 + 3 months ends on 2024-05-29 |
+| Extension over 6 months                 | Rejected, and nothing changes            |
+| One company viewing another's employees | Not found on every endpoint              |
 
-## Future improvements
+## What I would do next with more time
 
 - Real authentication with roles (for example HR and manager)
 - A "fail probation" outcome
 - Email or Slack reminders when a probation is due
 - Pagination and an OpenAPI specification
 
-## How I used AI tools
-
-<!-- TODO (author): write this section yourself. -->
+---
 
 ## Time spent
 
