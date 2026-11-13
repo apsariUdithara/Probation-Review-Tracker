@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 540" width="700" height="540" role="img" aria-labelledby="title desc">
+<title id="title">Confirm employee</title>
+<desc id="desc">The API locks the employee row. If the employee is still on probation it sets the status to confirmed, writes an audit event, commits and returns 200. If already confirmed it rolls back and returns 409.</desc>
+<defs><marker id="head-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2b8a3e"/></marker><marker id="head-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c92a2a"/></marker><marker id="head-main" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="head-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#66708a"/></marker></defs>
+<rect width="700" height="540" fill="#ffffff"/>
+<rect x="35" y="30" width="170" height="44" rx="6" fill="#ffffff" stroke="#7d88a6" stroke-width="1.5"/>
+<text x="120" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Client</text>
+<line x1="120" y1="74" x2="120" y2="520" stroke="#7d88a6" stroke-width="1" stroke-dasharray="4 4"/>
+<rect x="265" y="30" width="170" height="44" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="350" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">API</text>
+<line x1="350" y1="74" x2="350" y2="520" stroke="#7d88a6" stroke-width="1" stroke-dasharray="4 4"/>
+<rect x="495" y="30" width="170" height="44" rx="6" fill="#e7f6f8" stroke="#0b7285" stroke-width="1.5"/>
+<text x="580" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Database</text>
+<line x1="580" y1="74" x2="580" y2="520" stroke="#7d88a6" stroke-width="1" stroke-dasharray="4 4"/>
+<rect x="20" y="224" width="660" height="260" fill="none" stroke="#7d88a6"/>
+<text x="30" y="239" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1f2633" text-anchor="start">alt</text>
+<path d="M 20 244 L 54 244 L 62 236 L 62 224" fill="none" stroke="#7d88a6"/>
+<rect x="68" y="226" width="103.2" height="18" fill="#ffffff"/>
+<text x="72" y="239" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="start">[on probation]</text>
+<line x1="20" y1="400" x2="680" y2="400" stroke="#7d88a6" stroke-dasharray="6 4"/>
+<rect x="26" y="402" width="137.2" height="18" fill="#ffffff"/>
+<text x="30" y="415" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="start">[already confirmed]</text>
+<path d="M 120 110 L 348 110" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="235" y="102" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">POST /employees/:id/confirmation</text>
+<path d="M 350 150 L 578 150" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="465" y="142" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">BEGIN, lock employee row</text>
+<path d="M 580 190 L 352 190" fill="none" stroke="#66708a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#head-muted)"/>
+<text x="465" y="182" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">employee</text>
+<path d="M 350 250 L 578 250" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="465" y="242" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">set status = confirmed</text>
+<path d="M 350 290 L 578 290" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="465" y="282" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">insert audit event</text>
+<path d="M 350 330 L 578 330" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="465" y="322" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">COMMIT</text>
+<path d="M 350 370 L 122 370" fill="none" stroke="#2b8a3e" stroke-width="1.5" marker-end="url(#head-ok)"/>
+<text x="235" y="362" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#2b8a3e" text-anchor="middle">200 OK</text>
+<path d="M 350 426 L 578 426" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="465" y="418" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">ROLLBACK</text>
+<path d="M 350 466 L 122 466" fill="none" stroke="#c92a2a" stroke-width="1.5" marker-end="url(#head-err)"/>
+<text x="235" y="458" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#c92a2a" text-anchor="middle">409 Conflict</text>
+</svg>

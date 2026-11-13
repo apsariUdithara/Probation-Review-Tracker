@@ -1,108 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 692" width="1140" height="692" role="img" aria-labelledby="title desc">
-<title id="title">Company isolation: enforced in the app, and again in the database</title>
-<desc id="desc">Application layer: the company comes only from the X-Company-Id header; tenantMiddleware checks it with SELECT 1 FROM companies WHERE id = $1 (401 if unknown) and stores it in res.locals.ctx.companyId; the service passes it to all 10 repository functions, each of which filters or inserts by company_id. Another company’s employee returns 0 rows, so the API answers 404 EMPLOYEE_NOT_FOUND, the same as a missing id. Database layer: companies has many employees; employees exposes UNIQUE (company_id, id); probation_extensions and audit_events reference employees through the composite foreign key (company_id, employee_id), so a row pointing at another company’s employee is rejected with a foreign key violation.</desc>
-<defs><marker id="arrow-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#1b2235"/></marker><marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6480"/></marker><marker id="arrow-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c5cbdc"/></marker><marker id="arrow-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="arrow-success" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2b8a3e"/></marker><marker id="arrow-rejected" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#b35c00"/></marker><marker id="arrow-fault" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c92a2a"/></marker><marker id="arrow-waiting" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#7048e8"/></marker><marker id="arrow-store" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#0b7285"/></marker></defs>
-<rect width="1140" height="692" rx="12" fill="#f6f7fb"/>
-<text x="24" y="36" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#1b2235" text-anchor="start">Company isolation: enforced in the app, and again in the database</text>
-<text x="24" y="58" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6480" text-anchor="start">Another company’s employee behaves exactly like one that does not exist. Proven by test/integration/isolation.test.ts.</text>
-<rect x="20" y="84" width="540" height="556" rx="10" fill="none" stroke="#5b6480" stroke-width="1.5" stroke-dasharray="6 4"/>
-<text x="36" y="106" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#5b6480" text-anchor="start">Application  ·  src/</text>
-<rect x="580" y="84" width="540" height="556" rx="10" fill="none" stroke="#5b6480" stroke-width="1.5" stroke-dasharray="6 4"/>
-<text x="596" y="106" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#5b6480" text-anchor="start">Database  ·  migrations/1794552285665_init.sql</text>
-<rect x="44" y="118" width="492" height="64" rx="8" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
-<circle cx="62" cy="138" r="9" fill="#3b5bdb"/>
-<text x="62" y="142" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">1</text>
-<text x="78" y="143" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">X-Company-Id header</text>
-<text x="58" y="166" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">The only source of the company: never the URL, never the body (bodies are strict).</text>
-<path d="M 290 182 L 290 196" fill="none" stroke="#3b5bdb" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
-<rect x="44" y="198" width="492" height="82" rx="8" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
-<circle cx="62" cy="218" r="9" fill="#3b5bdb"/>
-<text x="62" y="222" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">2</text>
-<text x="78" y="223" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">tenantMiddleware</text>
-<text x="58" y="246" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="400" fill="#1b2235" text-anchor="start">SELECT 1 FROM companies WHERE id = $1</text>
-<text x="58" y="263" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#b35c00" text-anchor="start">unknown or malformed → 401 UNAUTHENTICATED</text>
-<path d="M 290 280 L 290 294" fill="none" stroke="#3b5bdb" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
-<rect x="44" y="296" width="492" height="64" rx="8" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
-<circle cx="62" cy="316" r="9" fill="#3b5bdb"/>
-<text x="62" y="320" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">3</text>
-<text x="78" y="321" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">res.locals.ctx.companyId</text>
-<text x="58" y="344" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">service.ts passes ctx.companyId to every repository call.</text>
-<path d="M 290 360 L 290 374" fill="none" stroke="#3b5bdb" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
-<rect x="44" y="376" width="492" height="148" rx="8" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
-<circle cx="62" cy="396" r="9" fill="#3b5bdb"/>
-<text x="62" y="400" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">4</text>
-<text x="78" y="401" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">repository.ts</text>
-<text x="184" y="401" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">all 10 functions scope their parameterised SQL</text>
-<text x="58" y="428" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#1b2235" text-anchor="start">findEmployee · lockEmployee</text>
-<text x="306" y="428" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#5b6480" text-anchor="start">WHERE id = $1 AND company_id = $2</text>
-<text x="58" y="446" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#1b2235" text-anchor="start">markConfirmed · addProbationMonths</text>
-<text x="306" y="446" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#5b6480" text-anchor="start">WHERE id = $1 AND company_id = $2</text>
-<text x="58" y="464" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#1b2235" text-anchor="start">listOpenProbations · listExtensions</text>
-<text x="306" y="464" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#5b6480" text-anchor="start">WHERE company_id = $1 AND …</text>
-<text x="58" y="482" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#1b2235" text-anchor="start">listAuditEvents</text>
-<text x="306" y="482" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#5b6480" text-anchor="start">WHERE company_id = $1 AND …</text>
-<text x="58" y="500" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#1b2235" text-anchor="start">insertEmployee · insertExtension</text>
-<text x="306" y="500" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#5b6480" text-anchor="start">company_id = ctx.companyId</text>
-<text x="58" y="518" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#1b2235" text-anchor="start">insertAuditEvent</text>
-<text x="306" y="518" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#5b6480" text-anchor="start">company_id = ctx.companyId</text>
-<path d="M 290 524 L 290 542" fill="none" stroke="#b35c00" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow-rejected)"/>
-<rect x="44" y="544" width="492" height="64" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
-<circle cx="62" cy="564" r="9" fill="#3b5bdb"/>
-<text x="62" y="568" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">4</text>
-<text x="78" y="569" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#b35c00" text-anchor="start">Another company's employee: 0 rows</text>
-<text x="58" y="592" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">→ NotFoundError → 404 EMPLOYEE_NOT_FOUND, identical to a missing id</text>
-<path d="M 536 440 L 578 440" fill="none" stroke="#0b7285" stroke-width="1.6" marker-end="url(#arrow-store)"/>
-<rect x="620" y="120" width="220" height="76" rx="6" fill="#e3f4f6" stroke="#0b7285" stroke-width="1.5"/>
-<text x="632" y="141" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">companies</text>
-<path d="M 620 150 L 840 150" fill="none" stroke="#0b7285" stroke-width="1"/>
-<text x="632" y="168" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">id</text>
-<text x="828" y="168" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6480" text-anchor="end">uuid PK</text>
-<text x="632" y="187" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">name</text>
-<text x="828" y="187" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6480" text-anchor="end">text</text>
-<rect x="620" y="246" width="460" height="95" rx="6" fill="#e3f4f6" stroke="#0b7285" stroke-width="1.5"/>
-<text x="632" y="267" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">employees</text>
-<path d="M 620 276 L 1080 276" fill="none" stroke="#0b7285" stroke-width="1"/>
-<text x="632" y="294" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">id</text>
-<text x="1068" y="294" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6480" text-anchor="end">uuid PK</text>
-<text x="632" y="313" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">company_id</text>
-<text x="1068" y="313" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6480" text-anchor="end">FK → companies(id)</text>
-<text x="632" y="332" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">UNIQUE (company_id, id)</text>
-<text x="1068" y="332" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6480" text-anchor="end">target of the composite FKs</text>
-<rect x="620" y="420" width="220" height="76" rx="6" fill="#e3f4f6" stroke="#0b7285" stroke-width="1.5"/>
-<text x="632" y="441" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">probation_extensions</text>
-<path d="M 620 450 L 840 450" fill="none" stroke="#0b7285" stroke-width="1"/>
-<text x="632" y="468" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">(company_id, employee_id)</text>
-<text x="828" y="468" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6480" text-anchor="end"></text>
-<text x="632" y="487" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">→ employees(company_id, id)</text>
-<text x="828" y="487" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6480" text-anchor="end"></text>
-<rect x="860" y="420" width="220" height="76" rx="6" fill="#e3f4f6" stroke="#0b7285" stroke-width="1.5"/>
-<text x="872" y="441" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">audit_events</text>
-<path d="M 860 450 L 1080 450" fill="none" stroke="#0b7285" stroke-width="1"/>
-<text x="872" y="468" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">(company_id, employee_id)</text>
-<text x="1068" y="468" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6480" text-anchor="end"></text>
-<text x="872" y="487" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">→ employees(company_id, id)</text>
-<text x="1068" y="487" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#5b6480" text-anchor="end"></text>
-<path d="M 700 196 L 700 246" fill="none" stroke="#0b7285" stroke-width="1.6"/>
-<text x="708" y="210" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#0b7285" text-anchor="start">1</text>
-<text x="708" y="240" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0b7285" text-anchor="start">*</text>
-<path d="M 730 341 L 730 420" fill="none" stroke="#0b7285" stroke-width="1.6"/>
-<text x="738" y="355" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#0b7285" text-anchor="start">1</text>
-<text x="738" y="414" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0b7285" text-anchor="start">*</text>
-<path d="M 970 341 L 970 420" fill="none" stroke="#0b7285" stroke-width="1.6"/>
-<text x="978" y="355" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#0b7285" text-anchor="start">1</text>
-<text x="978" y="414" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0b7285" text-anchor="start">*</text>
-<rect x="620" y="540" width="460" height="78" rx="8" fill="#fdeaea" stroke="#c92a2a" stroke-width="1.5" stroke-dasharray="6 4"/>
-<text x="634" y="563" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#c92a2a" text-anchor="start">Backstop: a cross-company child row cannot exist</text>
-<text x="634" y="584" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">INSERT with company B's company_id and company A's employee_id</text>
-<text x="634" y="602" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">→ 23503 foreign key violation, even if the application code were wrong</text>
-<rect x="24" y="660" width="14" height="14" rx="3" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
-<text x="44" y="671" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">request / control flow</text>
-<rect x="192.2" y="660" width="14" height="14" rx="3" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
-<text x="212.2" y="671" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">rejected (4xx): nothing written</text>
-<rect x="415.29999999999995" y="660" width="14" height="14" rx="3" fill="#fdeaea" stroke="#c92a2a" stroke-width="1.5"/>
-<text x="435.29999999999995" y="671" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">server error (5xx)</text>
-<rect x="559.0999999999999" y="660" width="14" height="14" rx="3" fill="#e3f4f6" stroke="#0b7285" stroke-width="1.5"/>
-<text x="579.0999999999999" y="671" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">PostgreSQL</text>
-<rect x="654.0999999999999" y="660" width="14" height="14" rx="3" fill="none" stroke="#5b6480" stroke-width="1.5" stroke-dasharray="6 4"/>
-<text x="674.0999999999999" y="671" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">dashed: database backstop</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 930 290" width="930" height="290" role="img" aria-labelledby="title desc">
+<title id="title">Company isolation</title>
+<desc id="desc">A request carries the caller company id in the X-Company-Id header. The API adds that company id to every query, so only Company A employees are returned. Company B employees are never returned; asking for one gives 404, as if it did not exist.</desc>
+<defs><marker id="head-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2b8a3e"/></marker><marker id="head-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c92a2a"/></marker><marker id="head-main" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="head-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#66708a"/></marker></defs>
+<rect width="930" height="290" fill="#ffffff"/>
+<rect x="30" y="110" width="200" height="70" rx="6" fill="#ffffff" stroke="#7d88a6" stroke-width="1.5"/>
+<text x="130" y="140.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Request</text>
+<text x="130" y="159.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">X-Company-Id: A</text>
+<rect x="320" y="110" width="190" height="70" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="415" y="140.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Probation API</text>
+<text x="415" y="159.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">adds company_id = A</text>
+<rect x="600" y="30" width="300" height="230" rx="8" fill="#e7f6f8" stroke="#0b7285" stroke-width="1.5"/>
+<text x="750" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Database</text>
+<rect x="620" y="74" width="260" height="72" rx="6" fill="#ffffff" stroke="#7d88a6" stroke-width="1.5"/>
+<text x="750" y="104" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#1f2633" text-anchor="middle">Company A employees</text>
+<text x="750" y="124" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#2b8a3e" text-anchor="middle">visible</text>
+<rect x="620" y="164" width="260" height="72" rx="6" fill="#ffffff" stroke="#7d88a6" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="750" y="194" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#66708a" text-anchor="middle">Company B employees</text>
+<text x="750" y="214" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#c92a2a" text-anchor="middle">never returned (404)</text>
+<path d="M 230 145 L 318 145" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<path d="M 510 135 L 618 110" fill="none" stroke="#2b8a3e" stroke-width="1.5" marker-end="url(#head-ok)"/>
 </svg>

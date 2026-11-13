@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 280" width="940" height="280" role="img" aria-labelledby="title desc">
+<title id="title">System overview</title>
+<desc id="desc">An HR user works through the optional React web page; other clients such as curl and the tests call the API directly. Both send JSON over HTTP to the Probation API (Node.js and Express), which stores everything in PostgreSQL.</desc>
+<defs><marker id="head-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#57c26f"/></marker><marker id="head-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#f07070"/></marker><marker id="head-main" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#7c95f5"/></marker><marker id="head-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#8b95ad"/></marker></defs>
+<rect width="940" height="280" fill="#0d1117"/>
+<circle cx="70" cy="124" r="11" fill="#161b26" stroke="#5d6782" stroke-width="1.5"/>
+<path d="M 48 168 Q 48 140 70 140 Q 92 140 92 168 Z" fill="#161b26" stroke="#5d6782" stroke-width="1.5"/>
+<text x="70" y="188" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">HR user</text>
+<rect x="170" y="60" width="190" height="76" rx="6" fill="#161b26" stroke="#5d6782" stroke-width="1.5"/>
+<text x="265" y="93.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Web page</text>
+<text x="265" y="112.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#8b95ad" text-anchor="middle">React + Vite (optional)</text>
+<rect x="170" y="170" width="190" height="76" rx="6" fill="#161b26" stroke="#5d6782" stroke-width="1.5"/>
+<text x="265" y="203.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">API clients</text>
+<text x="265" y="222.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#8b95ad" text-anchor="middle">curl, tests</text>
+<rect x="450" y="104" width="220" height="96" rx="6" fill="#1a2240" stroke="#7c95f5" stroke-width="1.5"/>
+<text x="560" y="139" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Probation API</text>
+<text x="560" y="158" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#8b95ad" text-anchor="middle">Node.js 24 + Express 5</text>
+<text x="560" y="175" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#8b95ad" text-anchor="middle">rules and transactions</text>
+<path d="M 760 112 A 75 10 0 0 1 910 112 L 910 192 A 75 10 0 0 1 760 192 Z" fill="#102a30" stroke="#4fc1d1" stroke-width="1.5"/>
+<path d="M 760 112 A 75 10 0 0 0 910 112" fill="none" stroke="#4fc1d1" stroke-width="1.5"/>
+<text x="835" y="158" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Database</text>
+<text x="835" y="176" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#8b95ad" text-anchor="middle">PostgreSQL 17</text>
+<path d="M 100 120 L 168 100" fill="none" stroke="#8b95ad" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="114.4" y="100" width="39.2" height="20" fill="#0d1117"/>
+<text x="134" y="114" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">uses</text>
+<path d="M 360 98 L 448 140" fill="none" stroke="#8b95ad" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="384.4" y="109" width="39.2" height="20" fill="#0d1117"/>
+<text x="404" y="123" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">JSON</text>
+<path d="M 360 208 L 448 168" fill="none" stroke="#8b95ad" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="384.4" y="178" width="39.2" height="20" fill="#0d1117"/>
+<text x="404" y="192" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">JSON</text>
+<path d="M 670 152 L 758 152" fill="none" stroke="#8b95ad" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="697.8" y="142" width="32.4" height="20" fill="#0d1117"/>
+<text x="714" y="156" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#e6edf3" text-anchor="middle">SQL</text>
+</svg>

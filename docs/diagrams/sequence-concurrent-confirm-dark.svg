@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 432" width="700" height="432" role="img" aria-labelledby="title desc">
+<title id="title">Two confirms at the same time</title>
+<desc id="desc">Two requests try to confirm the same employee. Request A locks the row first; request B waits. A confirms and commits, returning 200. B then sees the employee is already confirmed and returns 409.</desc>
+<defs><marker id="head-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#57c26f"/></marker><marker id="head-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#f07070"/></marker><marker id="head-main" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#7c95f5"/></marker><marker id="head-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#8b95ad"/></marker></defs>
+<rect width="700" height="432" fill="#0d1117"/>
+<rect x="35" y="30" width="170" height="44" rx="6" fill="#1a2240" stroke="#7c95f5" stroke-width="1.5"/>
+<text x="120" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Request A</text>
+<line x1="120" y1="74" x2="120" y2="412" stroke="#5d6782" stroke-width="1" stroke-dasharray="4 4"/>
+<rect x="265" y="30" width="170" height="44" rx="6" fill="#102a30" stroke="#4fc1d1" stroke-width="1.5"/>
+<text x="350" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Database</text>
+<line x1="350" y1="74" x2="350" y2="412" stroke="#5d6782" stroke-width="1" stroke-dasharray="4 4"/>
+<rect x="495" y="30" width="170" height="44" rx="6" fill="#1a2240" stroke="#7c95f5" stroke-width="1.5"/>
+<text x="580" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#e6edf3" text-anchor="middle">Request B</text>
+<line x1="580" y1="74" x2="580" y2="412" stroke="#5d6782" stroke-width="1" stroke-dasharray="4 4"/>
+<path d="M 120 110 L 348 110" fill="none" stroke="#7c95f5" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="235" y="102" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="middle">lock row</text>
+<path d="M 580 150 L 352 150" fill="none" stroke="#7c95f5" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="465" y="142" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="middle">lock row</text>
+<rect x="550.5" y="186" width="59" height="28" rx="4" fill="#0d1117" stroke="#8b95ad" stroke-width="1.5"/>
+<text x="580" y="205" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#8b95ad" text-anchor="middle">waits</text>
+<path d="M 120 234 L 348 234" fill="none" stroke="#7c95f5" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="235" y="226" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="middle">confirm + COMMIT</text>
+<rect x="87" y="270" width="66" height="28" rx="4" fill="#0d1117" stroke="#57c26f" stroke-width="1.5"/>
+<text x="120" y="289" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#57c26f" text-anchor="middle">200 OK</text>
+<path d="M 350 318 L 578 318" fill="none" stroke="#8b95ad" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#head-muted)"/>
+<text x="465" y="310" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#e6edf3" text-anchor="middle">already confirmed</text>
+<rect x="526" y="354" width="108" height="28" rx="4" fill="#0d1117" stroke="#f07070" stroke-width="1.5"/>
+<text x="580" y="373" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#f07070" text-anchor="middle">409 Conflict</text>
+</svg>

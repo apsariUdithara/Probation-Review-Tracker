@@ -1,58 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 568" width="1060" height="568" role="img" aria-labelledby="title desc">
-<title id="title">Employee lifecycle: two states, every other request rejected</title>
-<desc id="desc">State machine. POST /employees creates an employee in state on_probation with a total of 1 to 6 months and writes an employee.created audit event. POST extensions is a self-transition on on_probation, allowed only while total plus months is at most 6; it adds the months, Postgres recomputes the end date from the join date, and a probation.extended event is written. POST confirmation moves on_probation to confirmed and writes probation.confirmed. Extending past 6 months is rejected with 422, and confirming or extending a confirmed employee is rejected with 409; both leave the state unchanged. Overdue and due soon are not states: they are computed at read time from the end date and today.</desc>
-<defs><marker id="arrow-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#1b2235"/></marker><marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6480"/></marker><marker id="arrow-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c5cbdc"/></marker><marker id="arrow-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="arrow-success" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2b8a3e"/></marker><marker id="arrow-rejected" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#b35c00"/></marker><marker id="arrow-fault" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c92a2a"/></marker><marker id="arrow-waiting" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#7048e8"/></marker><marker id="arrow-store" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#0b7285"/></marker></defs>
-<rect width="1060" height="568" rx="12" fill="#f6f7fb"/>
-<text x="24" y="36" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#1b2235" text-anchor="start">Employee lifecycle: two states, every other request rejected</text>
-<text x="24" y="58" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6480" text-anchor="start">employees.status is 'on_probation' or 'confirmed' (CHECK constraint). Transitions read: request [guard] / effect.</text>
-<circle cx="70" cy="302" r="9" fill="#1b2235"/>
-<path d="M 79 302 L 328 302" fill="none" stroke="#3b5bdb" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
-<text x="96" y="242" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#3b5bdb" text-anchor="start">POST /employees</text>
-<text x="96" y="258" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">[probationMonths 1–6]</text>
-<text x="96" y="274" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">/ total = initial = months</text>
-<text x="96" y="290" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">/ audit: employee.created</text>
-<rect x="330" y="250" width="250" height="104" rx="22" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
-<text x="455" y="280" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="15" font-weight="700" fill="#1b2235" text-anchor="middle">on_probation</text>
-<path d="M 330 294 L 580 294" fill="none" stroke="#3b5bdb" stroke-width="1"/>
-<text x="455" y="316" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="middle">total_probation_months 1–6</text>
-<text x="455" y="333" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="middle">probation_end_date generated</text>
-<rect x="820" y="250" width="214" height="104" rx="22" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
-<text x="927" y="280" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="15" font-weight="700" fill="#1b2235" text-anchor="middle">confirmed</text>
-<path d="M 820 294 L 1034 294" fill="none" stroke="#3b5bdb" stroke-width="1"/>
-<text x="927" y="316" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="middle">confirmed_at, confirmed_by set</text>
-<text x="927" y="333" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="middle">no transition leaves this state</text>
-<path d="M 580 302 L 818 302" fill="none" stroke="#3b5bdb" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
-<text x="594" y="242" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#3b5bdb" text-anchor="start">POST …/confirmation</text>
-<text x="594" y="258" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">/ confirmed_at = now(),</text>
-<text x="594" y="274" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">  confirmed_by = actor</text>
-<text x="594" y="290" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="start">/ audit: probation.confirmed</text>
-<path d="M 410 250 C 410 170, 500 170, 500 248" fill="none" stroke="#3b5bdb" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
-<text x="455" y="100" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#3b5bdb" text-anchor="middle">POST …/extensions</text>
-<text x="455" y="116" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="middle">[total + months ≤ 6]</text>
-<text x="455" y="132" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="middle">/ total += months; end date recomputed</text>
-<text x="455" y="148" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="middle">  from join_date by Postgres</text>
-<text x="455" y="164" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#1b2235" text-anchor="middle">/ audit: probation.extended</text>
-<path d="M 455 354 L 455 422" fill="none" stroke="#b35c00" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow-rejected)"/>
-<rect x="330" y="424" width="250" height="76" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
-<text x="344" y="446" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">422</text>
-<text x="380" y="445" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="700" fill="#b35c00" text-anchor="start">MAX_PROBATION_EXCEEDED</text>
-<text x="344" y="466" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">extend with total + months &gt; 6</text>
-<text x="344" y="481" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">state unchanged, ROLLBACK</text>
-<path d="M 927 354 L 927 422" fill="none" stroke="#b35c00" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow-rejected)"/>
-<rect x="820" y="424" width="214" height="76" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
-<text x="834" y="446" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">409</text>
-<text x="870" y="445" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="12" font-weight="700" fill="#b35c00" text-anchor="start">ALREADY_CONFIRMED</text>
-<text x="834" y="466" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">confirm or extend again</text>
-<text x="834" y="481" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">state unchanged, ROLLBACK</text>
-<rect x="24" y="424" width="270" height="92" rx="8" fill="#ffffff" stroke="#5b6480" stroke-width="1.5" stroke-dasharray="6 4"/>
-<text x="38" y="446" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#1b2235" text-anchor="start">Not states: overdue, due soon</text>
-<text x="38" y="466" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">Computed at read time by bucketFor()</text>
-<text x="38" y="482" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">from probation_end_date − today, so</text>
-<text x="38" y="498" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">nothing has to update them as days pass.</text>
-<rect x="24" y="536" width="14" height="14" rx="3" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
-<text x="44" y="547" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">request / control flow</text>
-<rect x="192.2" y="536" width="14" height="14" rx="3" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
-<text x="212.2" y="547" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">rejected (4xx): nothing written</text>
-<rect x="415.29999999999995" y="536" width="14" height="14" rx="3" fill="none" stroke="#5b6480" stroke-width="1.5" stroke-dasharray="6 4"/>
-<text x="435.29999999999995" y="547" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">dashed box: derived, not stored</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 790 200" width="790" height="200" role="img" aria-labelledby="title desc">
+<title id="title">Employee lifecycle</title>
+<desc id="desc">State diagram. Adding an employee starts them in On probation. Extending keeps them On probation as long as the total stays at or below 6 months. Confirming moves them to Confirmed; nothing moves them out of it.</desc>
+<defs><marker id="head-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2b8a3e"/></marker><marker id="head-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c92a2a"/></marker><marker id="head-main" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="head-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#66708a"/></marker></defs>
+<rect width="790" height="200" fill="#ffffff"/>
+<circle cx="50" cy="130" r="9" fill="#1f2633"/>
+<path d="M 60 130 L 178 130" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="72.2" y="100" width="93.6" height="20" fill="#ffffff"/>
+<text x="119" y="114" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2633" text-anchor="middle">add employee</text>
+<rect x="180" y="96" width="190" height="68" rx="22" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="275" y="135" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2633" text-anchor="middle">On probation</text>
+<rect x="560" y="96" width="190" height="68" rx="22" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="655" y="135" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2633" text-anchor="middle">Confirmed</text>
+<path d="M 370 130 L 558 130" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="434.2" y="100" width="59.6" height="20" fill="#ffffff"/>
+<text x="464" y="114" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2633" text-anchor="middle">confirm</text>
+<path d="M 240 96 C 240 30, 310 30, 310 94" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<text x="275" y="32" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2633" text-anchor="middle">extend [total ≤ 6 months]</text>
 </svg>

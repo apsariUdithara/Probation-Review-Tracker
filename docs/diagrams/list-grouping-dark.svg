@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 160" width="950" height="160" role="img" aria-labelledby="title desc">
+<title id="title">How the list is grouped</title>
+<desc id="desc">Each unconfirmed probation is placed on a day axis relative to today: before today is Overdue, today to day 7 is Due in 7 days, day 8 to 30 is Due in 30 days, and day 31 up to N is Due later. A probation that ends today is due, not overdue.</desc>
+<defs><marker id="head-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#57c26f"/></marker><marker id="head-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#f07070"/></marker><marker id="head-main" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#7c95f5"/></marker><marker id="head-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#8b95ad"/></marker></defs>
+<rect width="950" height="160" fill="#0d1117"/>
+<rect x="43" y="30" width="214" height="50" rx="4" fill="#1a2240" stroke="#7c95f5" stroke-width="1.5"/>
+<text x="150" y="52" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e6edf3" text-anchor="middle">Overdue</text>
+<text x="150" y="70" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#8b95ad" text-anchor="middle">before today</text>
+<rect x="263" y="30" width="204" height="50" rx="4" fill="#1a2240" stroke="#7c95f5" stroke-width="1.5"/>
+<text x="365" y="52" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e6edf3" text-anchor="middle">Due in 7 days</text>
+<text x="365" y="70" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#8b95ad" text-anchor="middle">today to day 7</text>
+<rect x="473" y="30" width="244" height="50" rx="4" fill="#1a2240" stroke="#7c95f5" stroke-width="1.5"/>
+<text x="595" y="52" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e6edf3" text-anchor="middle">Due in 30 days</text>
+<text x="595" y="70" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#8b95ad" text-anchor="middle">day 8 to 30</text>
+<rect x="723" y="30" width="174" height="50" rx="4" fill="#161b26" stroke="#5d6782" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="810" y="52" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e6edf3" text-anchor="middle">Due later</text>
+<text x="810" y="70" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#8b95ad" text-anchor="middle">day 31 to N</text>
+<path d="M 40 110 L 910 110" fill="none" stroke="#8b95ad" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<line x1="260" y1="102" x2="260" y2="118" stroke="#e6edf3" stroke-width="2"/>
+<text x="260" y="138" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#e6edf3" text-anchor="middle">today</text>
+<text x="910" y="138" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#8b95ad" text-anchor="end">days</text>
+</svg>
