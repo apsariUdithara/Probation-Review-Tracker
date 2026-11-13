@@ -127,3 +127,10 @@ The full list is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#assumptions).
 - Pagination and an OpenAPI specification
 
 ---
+
+AI Assistance:
+
+- Planning: to draft the implementation plan, which I reviewed and changed.
+- Code, tests and docs: to write them phase by phase. After each phase I ran the tests, read the code, and asked for changes where I disagreed.
+- Architecture diagrams: to generate them from a script, which I checked against the code.
+- Review: to run a final review, which found three bugs. Each was fixed with a regression test.
