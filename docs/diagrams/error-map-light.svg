@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1230 364" width="1230" height="364" role="img" aria-labelledby="title desc">
+<title id="title">Where each response comes from</title>
+<desc id="desc">Requests pass express.json, tenantMiddleware, routes, service and PostgreSQL in order. The route handler returns 200 or 201. Each stage can instead fail: express.json with 400 INVALID_JSON or 413; tenantMiddleware with 401 UNAUTHENTICATED; routes with 400 VALIDATION_ERROR or 404 for a malformed id; the service with 404 EMPLOYEE_NOT_FOUND, 409 ALREADY_CONFIRMED or 422 MAX_PROBATION_EXCEEDED; PostgreSQL with 422 CONSTRAINT_VIOLATION or 500. All errors go through errorHandler, which returns a JSON error body.</desc>
+<defs><marker id="head-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2b8a3e"/></marker><marker id="head-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c92a2a"/></marker><marker id="head-main" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="head-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#66708a"/></marker></defs>
+<rect width="1230" height="364" fill="#ffffff"/>
+<rect x="20" y="70" width="120" height="60" rx="6" fill="#ffffff" stroke="#7d88a6" stroke-width="1.5"/>
+<text x="80" y="104" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Client</text>
+<path d="M 140 100 L 168 100" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<path d="M 688 70 L 688 40 L 80 40 L 80 68" fill="none" stroke="#2b8a3e" stroke-width="1.5" marker-end="url(#head-ok)"/>
+<rect x="364.3" y="30" width="71.4" height="20" fill="#ffffff"/>
+<text x="400" y="44" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#2b8a3e" text-anchor="middle">200 / 201</text>
+<rect x="170" y="70" width="196" height="60" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="268" y="95.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">express.json()</text>
+<text x="268" y="114.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">parse body</text>
+<path d="M 366 100 L 378 100" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="170" y="162" width="196" height="28" rx="14" fill="#ffffff" stroke="#c92a2a" stroke-width="1.5"/>
+<text x="268" y="180" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="11.5" font-weight="600" fill="#c92a2a" text-anchor="middle">400 INVALID_JSON</text>
+<rect x="170" y="200" width="196" height="28" rx="14" fill="#ffffff" stroke="#c92a2a" stroke-width="1.5"/>
+<text x="268" y="218" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="11.5" font-weight="600" fill="#c92a2a" text-anchor="middle">413 INVALID_REQUEST</text>
+<line x1="268" y1="130" x2="268" y2="162" stroke="#66708a" stroke-width="1.5" stroke-dasharray="4 4"/>
+<rect x="380" y="70" width="196" height="60" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="478" y="95.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">tenantMiddleware</text>
+<text x="478" y="114.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">check headers</text>
+<path d="M 576 100 L 588 100" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="380" y="162" width="196" height="28" rx="14" fill="#ffffff" stroke="#c92a2a" stroke-width="1.5"/>
+<text x="478" y="180" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="11.5" font-weight="600" fill="#c92a2a" text-anchor="middle">401 UNAUTHENTICATED</text>
+<line x1="478" y1="130" x2="478" y2="162" stroke="#66708a" stroke-width="1.5" stroke-dasharray="4 4"/>
+<rect x="590" y="70" width="196" height="60" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="688" y="95.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">routes</text>
+<text x="688" y="114.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">validate (Zod)</text>
+<path d="M 786 100 L 798 100" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="590" y="162" width="196" height="28" rx="14" fill="#ffffff" stroke="#c92a2a" stroke-width="1.5"/>
+<text x="688" y="180" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="11.5" font-weight="600" fill="#c92a2a" text-anchor="middle">400 VALIDATION_ERROR</text>
+<rect x="590" y="200" width="196" height="28" rx="14" fill="#ffffff" stroke="#c92a2a" stroke-width="1.5"/>
+<text x="688" y="218" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="11.5" font-weight="600" fill="#c92a2a" text-anchor="middle">404 EMPLOYEE_NOT_FOUND</text>
+<line x1="688" y1="130" x2="688" y2="162" stroke="#66708a" stroke-width="1.5" stroke-dasharray="4 4"/>
+<rect x="800" y="70" width="196" height="60" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="898" y="95.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">service</text>
+<text x="898" y="114.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">business rules</text>
+<path d="M 996 100 L 1008 100" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="800" y="162" width="196" height="28" rx="14" fill="#ffffff" stroke="#c92a2a" stroke-width="1.5"/>
+<text x="898" y="180" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="11.5" font-weight="600" fill="#c92a2a" text-anchor="middle">404 EMPLOYEE_NOT_FOUND</text>
+<rect x="800" y="200" width="196" height="28" rx="14" fill="#ffffff" stroke="#c92a2a" stroke-width="1.5"/>
+<text x="898" y="218" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="11.5" font-weight="600" fill="#c92a2a" text-anchor="middle">409 ALREADY_CONFIRMED</text>
+<rect x="800" y="238" width="196" height="28" rx="14" fill="#ffffff" stroke="#c92a2a" stroke-width="1.5"/>
+<text x="898" y="256" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="11.5" font-weight="600" fill="#c92a2a" text-anchor="middle">422 MAX_PROBATION_EXCEEDED</text>
+<line x1="898" y1="130" x2="898" y2="162" stroke="#66708a" stroke-width="1.5" stroke-dasharray="4 4"/>
+<rect x="1010" y="70" width="196" height="60" rx="6" fill="#e7f6f8" stroke="#0b7285" stroke-width="1.5"/>
+<text x="1108" y="95.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">PostgreSQL</text>
+<text x="1108" y="114.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">constraints</text>
+<rect x="1010" y="162" width="196" height="28" rx="14" fill="#ffffff" stroke="#c92a2a" stroke-width="1.5"/>
+<text x="1108" y="180" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="11.5" font-weight="600" fill="#c92a2a" text-anchor="middle">422 CONSTRAINT_VIOLATION</text>
+<rect x="1010" y="200" width="196" height="28" rx="14" fill="#ffffff" stroke="#c92a2a" stroke-width="1.5"/>
+<text x="1108" y="218" font-family="ui-monospace, SFMono-Regular, Consolas, monospace" font-size="11.5" font-weight="600" fill="#c92a2a" text-anchor="middle">500 INTERNAL_ERROR</text>
+<line x1="1108" y1="130" x2="1108" y2="162" stroke="#66708a" stroke-width="1.5" stroke-dasharray="4 4"/>
+<path d="M 268 228 L 268 298" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<path d="M 478 190 L 478 298" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<path d="M 688 228 L 688 298" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<path d="M 898 266 L 898 298" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<path d="M 1108 228 L 1108 298" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="170" y="300" width="1036" height="40" rx="6" fill="#ffffff" stroke="#7d88a6" stroke-width="1.5"/>
+<text x="688" y="325" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="400" fill="#1f2633" text-anchor="middle">errorHandler  →  { "error": { "code", "message" } }</text>
+<path d="M 170 320 L 80 320 L 80 132" fill="none" stroke="#c92a2a" stroke-width="1.5" marker-end="url(#head-err)"/>
+</svg>

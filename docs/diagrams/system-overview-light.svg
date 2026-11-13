@@ -21,15 +21,15 @@
 <text x="835" y="158" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Database</text>
 <text x="835" y="176" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">PostgreSQL 17</text>
 <path d="M 100 120 L 168 100" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
-<rect x="114.4" y="100" width="39.2" height="20" fill="#ffffff"/>
+<rect x="114.8" y="100" width="38.400000000000006" height="20" fill="#ffffff"/>
 <text x="134" y="114" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2633" text-anchor="middle">uses</text>
 <path d="M 360 98 L 448 140" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
-<rect x="384.4" y="109" width="39.2" height="20" fill="#ffffff"/>
+<rect x="384.8" y="109" width="38.400000000000006" height="20" fill="#ffffff"/>
 <text x="404" y="123" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2633" text-anchor="middle">JSON</text>
 <path d="M 360 208 L 448 168" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
-<rect x="384.4" y="178" width="39.2" height="20" fill="#ffffff"/>
+<rect x="384.8" y="178" width="38.400000000000006" height="20" fill="#ffffff"/>
 <text x="404" y="192" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2633" text-anchor="middle">JSON</text>
 <path d="M 670 152 L 758 152" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
-<rect x="697.8" y="142" width="32.4" height="20" fill="#ffffff"/>
+<rect x="698.1" y="142" width="31.8" height="20" fill="#ffffff"/>
 <text x="714" y="156" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2633" text-anchor="middle">SQL</text>
 </svg>

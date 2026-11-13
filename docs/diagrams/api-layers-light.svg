@@ -1,38 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 530" width="700" height="530" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 546" width="720" height="546" role="img" aria-labelledby="title desc">
 <title id="title">API layers</title>
-<desc id="desc">Requests pass down through four layers: middleware checks the company and user, routes validate the request, the service applies business rules inside transactions, and the repository runs SQL against PostgreSQL. The service uses a separate domain module of pure rules. An error handler turns any error into a JSON response.</desc>
+<desc id="desc">Requests pass down through four layers: middleware (tenant.ts) reads the company and user from headers, routes (routes.ts) validate input with Zod, the service (service.ts) applies rules inside transactions and writes the audit trail, and the repository (repository.ts) runs SQL scoped by company_id. The service uses pure rules in domain/probation.ts. Any error goes to error-handler.ts, which returns JSON.</desc>
 <defs><marker id="head-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2b8a3e"/></marker><marker id="head-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c92a2a"/></marker><marker id="head-main" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="head-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#66708a"/></marker></defs>
-<rect width="700" height="530" fill="#ffffff"/>
-<rect x="60" y="30" width="300" height="64" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
-<text x="210" y="57.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Middleware</text>
-<text x="210" y="76.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">check company and user</text>
-<path d="M 210 94 L 210 124" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
-<rect x="60" y="126" width="300" height="64" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
-<text x="210" y="153.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Routes</text>
-<text x="210" y="172.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">validate the request</text>
-<path d="M 210 190 L 210 220" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
-<rect x="60" y="222" width="300" height="64" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
-<text x="210" y="249.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Service</text>
-<text x="210" y="268.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">business rules, transactions</text>
-<path d="M 210 286 L 210 316" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
-<rect x="60" y="318" width="300" height="64" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
-<text x="210" y="345.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Repository</text>
-<text x="210" y="364.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">SQL queries</text>
-<path d="M 210 382 L 210 412" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
-<path d="M 130 424 A 80 10 0 0 1 290 424 L 290 490 A 80 10 0 0 1 130 490 Z" fill="#e7f6f8" stroke="#0b7285" stroke-width="1.5"/>
-<path d="M 130 424 A 80 10 0 0 0 290 424" fill="none" stroke="#0b7285" stroke-width="1.5"/>
-<text x="210" y="463" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Database</text>
-<text x="210" y="481" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">PostgreSQL</text>
-<rect x="440" y="222" width="200" height="64" rx="6" fill="#ffffff" stroke="#7d88a6" stroke-width="1.5"/>
-<text x="540" y="249.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Domain</text>
-<text x="540" y="268.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">pure rules, no I/O</text>
-<path d="M 360 254 L 438 254" fill="none" stroke="#66708a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#head-muted)"/>
-<rect x="379.4" y="244" width="39.2" height="20" fill="#ffffff"/>
-<text x="399" y="258" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2633" text-anchor="middle">uses</text>
-<rect x="440" y="30" width="200" height="64" rx="6" fill="#ffffff" stroke="#7d88a6" stroke-width="1.5"/>
-<text x="540" y="57.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Error handler</text>
-<text x="540" y="76.5" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">turns errors into JSON</text>
-<path d="M 360 62 L 438 62" fill="none" stroke="#66708a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#head-muted)"/>
-<rect x="362.4" y="52" width="73.19999999999999" height="20" fill="#ffffff"/>
-<text x="399" y="66" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2633" text-anchor="middle">any error</text>
+<rect width="720" height="546" fill="#ffffff"/>
+<rect x="60" y="30" width="300" height="72" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="210" y="53" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Middleware</text>
+<text x="210" y="72" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">tenant.ts</text>
+<text x="210" y="89" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">company + user from headers</text>
+<path d="M 210 102 L 210 128" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="60" y="130" width="300" height="72" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="210" y="153" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Routes</text>
+<text x="210" y="172" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">employees/routes.ts</text>
+<text x="210" y="189" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">validate input (Zod)</text>
+<path d="M 210 202 L 210 228" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="60" y="230" width="300" height="72" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="210" y="253" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Service</text>
+<text x="210" y="272" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">employees/service.ts</text>
+<text x="210" y="289" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">rules, transactions, audit</text>
+<path d="M 210 302 L 210 328" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<rect x="60" y="330" width="300" height="72" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="210" y="353" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Repository</text>
+<text x="210" y="372" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">employees/repository.ts</text>
+<text x="210" y="389" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">SQL, scoped by company_id</text>
+<path d="M 210 402 L 210 428" fill="none" stroke="#66708a" stroke-width="1.5" marker-end="url(#head-muted)"/>
+<path d="M 130 440 A 80 10 0 0 1 290 440 L 290 506 A 80 10 0 0 1 130 506 Z" fill="#e7f6f8" stroke="#0b7285" stroke-width="1.5"/>
+<path d="M 130 440 A 80 10 0 0 0 290 440" fill="none" stroke="#0b7285" stroke-width="1.5"/>
+<text x="210" y="479" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Database</text>
+<text x="210" y="497" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">PostgreSQL</text>
+<rect x="450" y="30" width="220" height="72" rx="6" fill="#ffffff" stroke="#7d88a6" stroke-width="1.5"/>
+<text x="560" y="53" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Error handler</text>
+<text x="560" y="72" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">error-handler.ts</text>
+<text x="560" y="89" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">errors → JSON</text>
+<path d="M 360 66 L 448 66" fill="none" stroke="#66708a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#head-muted)"/>
+<rect x="368.3" y="56" width="71.4" height="20" fill="#ffffff"/>
+<text x="404" y="70" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2633" text-anchor="middle">any error</text>
+<rect x="450" y="230" width="220" height="72" rx="6" fill="#ffffff" stroke="#7d88a6" stroke-width="1.5"/>
+<text x="560" y="253" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Domain</text>
+<text x="560" y="272" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">domain/probation.ts</text>
+<text x="560" y="289" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="middle">pure rules, no I/O</text>
+<path d="M 360 266 L 448 266" fill="none" stroke="#66708a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#head-muted)"/>
+<rect x="384.8" y="256" width="38.400000000000006" height="20" fill="#ffffff"/>
+<text x="404" y="270" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1f2633" text-anchor="middle">uses</text>
 </svg>

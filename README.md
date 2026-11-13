@@ -159,20 +159,29 @@ Who talks to what.
 
 ### API layers
 
-Each layer has one job; any error goes to the error handler.
+Each layer has one job and one file; any error goes to the error handler.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/api-layers-dark.svg">
-  <img src="docs/diagrams/api-layers-light.svg" alt="Middleware checks company and user, routes validate the request, the service applies rules and transactions, and the repository runs SQL against PostgreSQL. The service uses a pure domain module. Any error goes to the error handler, which returns JSON.">
+  <img src="docs/diagrams/api-layers-light.svg" alt="Middleware (tenant.ts) reads company and user, routes (routes.ts) validate with Zod, the service (service.ts) applies rules and transactions, the repository (repository.ts) runs SQL scoped by company_id. The service uses pure rules in domain/probation.ts. Any error goes to error-handler.ts.">
+</picture>
+
+### Where each response comes from
+
+Every status code the API can return, under the stage that produces it.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/error-map-dark.svg">
+  <img src="docs/diagrams/error-map-light.svg" alt="Stages express.json, tenantMiddleware, routes, service, PostgreSQL. Success 200 or 201 comes from the routes. Errors: 400 INVALID_JSON and 413; 401 UNAUTHENTICATED; 400 VALIDATION_ERROR and 404 for a malformed id; 404 EMPLOYEE_NOT_FOUND, 409 ALREADY_CONFIRMED, 422 MAX_PROBATION_EXCEEDED; 422 CONSTRAINT_VIOLATION and 500. All go through errorHandler.">
 </picture>
 
 ### Data model
 
-One company has many employees; each employee has many extensions and audit events.
+The composite foreign key keeps extensions and audit events in their employee's company; CHECKs enforce the limits.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/data-model-dark.svg">
-  <img src="docs/diagrams/data-model-light.svg" alt="Entity-relationship diagram: companies to employees is one to many; employees to probation_extensions and to audit_events is one to many.">
+  <img src="docs/diagrams/data-model-light.svg" alt="Entity-relationship diagram: companies to employees one to many; employees to probation_extensions and audit_events one to many through the composite foreign key (company_id, employee_id). CHECK 1 to 6 on total months, CHECK 1 to 3 on extension months, generated end date.">
 </picture>
 
 ### Employee lifecycle
@@ -181,16 +190,16 @@ Extend while the total stays at or below 6 months; confirm once.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/employee-lifecycle-dark.svg">
-  <img src="docs/diagrams/employee-lifecycle-light.svg" alt="State diagram: add employee starts On probation; extend loops on On probation while the total is at most 6 months; confirm moves to Confirmed.">
+  <img src="docs/diagrams/employee-lifecycle-light.svg" alt="State diagram: add employee starts On probation; extend loops while the total is at most 6 months, over 6 gives 422; confirm moves to Confirmed; confirming or extending again gives 409.">
 </picture>
 
 ### Company isolation
 
-The API adds the caller's company to every query.
+Enforced twice: by the query filter in the API, and by the foreign key in the database.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/company-isolation-dark.svg">
-  <img src="docs/diagrams/company-isolation-light.svg" alt="A request with X-Company-Id A goes to the API, which adds company_id = A to the query, so only Company A employees are returned; Company B employees give 404.">
+  <img src="docs/diagrams/company-isolation-light.svg" alt="A request with X-Company-Id A gets WHERE company_id = A on every query, so only Company A employees are returned and Company B ones give 404. In the database the composite foreign key blocks cross-company rows.">
 </picture>
 
 ### Add employee
@@ -199,7 +208,7 @@ The employee and its audit event are saved in one transaction.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/sequence-add-employee-dark.svg">
-  <img src="docs/diagrams/sequence-add-employee-light.svg" alt="Sequence diagram: client posts the employee, API validates, inserts the employee and an audit event in a transaction, commits and returns 201.">
+  <img src="docs/diagrams/sequence-add-employee-light.svg" alt="Sequence diagram: validate with Zod; if valid, BEGIN, insertEmployee, insertAuditEvent, COMMIT, 201 Created; if invalid, 400 VALIDATION_ERROR.">
 </picture>
 
 ### Confirm employee
@@ -208,7 +217,7 @@ The row is locked first, so an employee can only be confirmed once.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/sequence-confirm-dark.svg">
-  <img src="docs/diagrams/sequence-confirm-light.svg" alt="Sequence diagram: API locks the employee row; if on probation it confirms, writes an audit event, commits and returns 200; if already confirmed it rolls back and returns 409.">
+  <img src="docs/diagrams/sequence-confirm-light.svg" alt="Sequence diagram: BEGIN and lockEmployee; if on probation, markConfirmed, insertAuditEvent, COMMIT, 200; if already confirmed, ROLLBACK and 409; if not found, ROLLBACK and 404.">
 </picture>
 
 ### Extend probation
@@ -217,25 +226,25 @@ Going over 6 months is rejected before anything is written.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/sequence-extend-dark.svg">
-  <img src="docs/diagrams/sequence-extend-light.svg" alt="Sequence diagram: API locks the employee row; if total plus months is at most 6 it adds the months, records the extension and audit event, commits and returns 201; otherwise it rolls back and returns 422.">
+  <img src="docs/diagrams/sequence-extend-light.svg" alt="Sequence diagram: BEGIN and lockEmployee; if on probation and within 6 months, addProbationMonths, insertExtension, insertAuditEvent, COMMIT, 201; if over 6 months, ROLLBACK and 422; if confirmed or not found, ROLLBACK and 409 or 404.">
 </picture>
 
 ### Two confirms at the same time
 
-The second request waits for the lock, then gets 409.
+The second request waits for the lock, then sees the employee is already confirmed.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/sequence-concurrent-confirm-dark.svg">
-  <img src="docs/diagrams/sequence-concurrent-confirm-light.svg" alt="Sequence diagram: request A locks the row, request B waits; A confirms and commits with 200; B then sees already confirmed and returns 409.">
+  <img src="docs/diagrams/sequence-concurrent-confirm-light.svg" alt="Sequence diagram: request A locks the row with SELECT FOR UPDATE, request B waits; A updates, writes the audit event and commits, returning 200; B re-reads the row as confirmed, rolls back and returns 409.">
 </picture>
 
 ### How the list is grouped
 
-A probation ending today is due, not overdue.
+A probation ending today (day 0) is due, not overdue.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/list-grouping-dark.svg">
-  <img src="docs/diagrams/list-grouping-light.svg" alt="Day axis: before today is Overdue, today to day 7 is Due in 7 days, day 8 to 30 is Due in 30 days, day 31 to N is Due later.">
+  <img src="docs/diagrams/list-grouping-light.svg" alt="Day axis of days until end: below 0 Overdue, 0 to 7 Due in 7 days, 8 to 30 Due in 30 days, 31 to N Due later.">
 </picture>
 
 ## Design decisions

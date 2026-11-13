@@ -1,29 +1,39 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 442" width="700" height="442" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 522" width="760" height="522" role="img" aria-labelledby="title desc">
 <title id="title">Add employee</title>
-<desc id="desc">The client posts the new employee. The API validates the input, then in one transaction inserts the employee and an "employee created" audit event, commits, and returns 201 Created.</desc>
+<desc id="desc">The client posts the new employee. The API validates the input with Zod; invalid input returns 400 before anything is written. Valid input is saved in one transaction: insertEmployee (Postgres generates the end date), then an employee.created audit event, then COMMIT, and the API returns 201 Created with a Location header.</desc>
 <defs><marker id="head-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2b8a3e"/></marker><marker id="head-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c92a2a"/></marker><marker id="head-main" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="head-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#66708a"/></marker></defs>
-<rect width="700" height="442" fill="#ffffff"/>
-<rect x="35" y="30" width="170" height="44" rx="6" fill="#ffffff" stroke="#7d88a6" stroke-width="1.5"/>
-<text x="120" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Client</text>
-<line x1="120" y1="74" x2="120" y2="422" stroke="#7d88a6" stroke-width="1" stroke-dasharray="4 4"/>
-<rect x="265" y="30" width="170" height="44" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
-<text x="350" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">API</text>
-<line x1="350" y1="74" x2="350" y2="422" stroke="#7d88a6" stroke-width="1" stroke-dasharray="4 4"/>
-<rect x="495" y="30" width="170" height="44" rx="6" fill="#e7f6f8" stroke="#0b7285" stroke-width="1.5"/>
-<text x="580" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Database</text>
-<line x1="580" y1="74" x2="580" y2="422" stroke="#7d88a6" stroke-width="1" stroke-dasharray="4 4"/>
-<path d="M 120 110 L 348 110" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
-<text x="235" y="102" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">POST /employees</text>
-<path d="M 350 150 L 390 150 L 390 174 L 352 174" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
-<text x="398" y="166" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="start">validate input</text>
-<path d="M 350 212 L 578 212" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
-<text x="465" y="204" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">BEGIN, insert employee</text>
-<path d="M 580 252 L 352 252" fill="none" stroke="#66708a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#head-muted)"/>
-<text x="465" y="244" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">new row + end date</text>
-<path d="M 350 292 L 578 292" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
-<text x="465" y="284" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">insert audit event</text>
-<path d="M 350 332 L 578 332" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
-<text x="465" y="324" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">COMMIT</text>
-<path d="M 350 372 L 122 372" fill="none" stroke="#2b8a3e" stroke-width="1.5" marker-end="url(#head-ok)"/>
-<text x="235" y="364" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#2b8a3e" text-anchor="middle">201 Created</text>
+<rect width="760" height="522" fill="#ffffff"/>
+<rect x="40" y="30" width="180" height="44" rx="6" fill="#ffffff" stroke="#7d88a6" stroke-width="1.5"/>
+<text x="130" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">Client</text>
+<line x1="130" y1="74" x2="130" y2="502" stroke="#7d88a6" stroke-width="1.5" stroke-dasharray="4 4"/>
+<rect x="290" y="30" width="180" height="44" rx="6" fill="#eef2ff" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="380" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">API</text>
+<line x1="380" y1="74" x2="380" y2="502" stroke="#7d88a6" stroke-width="1.5" stroke-dasharray="4 4"/>
+<rect x="540" y="30" width="180" height="44" rx="6" fill="#e7f6f8" stroke="#0b7285" stroke-width="1.5"/>
+<text x="630" y="56" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1f2633" text-anchor="middle">PostgreSQL</text>
+<line x1="630" y1="74" x2="630" y2="502" stroke="#7d88a6" stroke-width="1.5" stroke-dasharray="4 4"/>
+<rect x="20" y="206" width="720" height="260" fill="none" stroke="#7d88a6"/>
+<text x="30" y="221" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1f2633" text-anchor="start">alt</text>
+<path d="M 20 226 L 54 226 L 62 218 L 62 206" fill="none" stroke="#7d88a6"/>
+<rect x="68" y="208" width="55.6" height="18" fill="#ffffff"/>
+<text x="72" y="221" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="start">[valid]</text>
+<line x1="20" y1="422" x2="740" y2="422" stroke="#7d88a6" stroke-width="1.5" stroke-dasharray="4 4"/>
+<rect x="26" y="424" width="69.19999999999999" height="18" fill="#ffffff"/>
+<text x="30" y="437" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#66708a" text-anchor="start">[invalid]</text>
+<path d="M 130 110 L 378 110" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="255" y="102" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">POST /employees</text>
+<path d="M 380 150 L 420 150 L 420 174 L 382 174" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="428" y="166" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="start">validate (Zod)</text>
+<path d="M 380 232 L 628 232" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="505" y="224" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">BEGIN · insertEmployee</text>
+<path d="M 630 272 L 382 272" fill="none" stroke="#66708a" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#head-muted)"/>
+<text x="505" y="264" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">row + generated end date</text>
+<path d="M 380 312 L 628 312" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="505" y="304" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">insertAuditEvent (created)</text>
+<path d="M 380 352 L 628 352" fill="none" stroke="#3b5bdb" stroke-width="1.5" marker-end="url(#head-main)"/>
+<text x="505" y="344" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1f2633" text-anchor="middle">COMMIT</text>
+<path d="M 380 392 L 132 392" fill="none" stroke="#2b8a3e" stroke-width="1.5" marker-end="url(#head-ok)"/>
+<text x="255" y="384" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#2b8a3e" text-anchor="middle">201 Created + Location</text>
+<path d="M 380 448 L 132 448" fill="none" stroke="#c92a2a" stroke-width="1.5" marker-end="url(#head-err)"/>
+<text x="255" y="440" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#c92a2a" text-anchor="middle">400 VALIDATION_ERROR</text>
 </svg>
