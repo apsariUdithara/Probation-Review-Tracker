@@ -274,12 +274,12 @@ A probation that **ends today** counts as **due, not overdue**. That's another r
 
 **Layers.** `routes` (validation, status codes) → `service` (use cases, transactions) → `repository` (SQL only). Pure business rules live in `src/domain/` and have no database or HTTP code. `createApp({ pool, clock })` builds the app without opening a port, so tests inject the test database and a fixed date.
 
-**`pg` with hand-written SQL, no ORM.** This project relies more on PostgreSQL features than on plain CRUD: a generated column for the end date, CHECK constraints, composite foreign keys, a partial unique index and `SELECT … FOR UPDATE` row locks. Writing them in plain SQL keeps the migration as the single source of truth for the schema. All 11 queries also sit in one file, [`repository.ts`](src/employees/repository.ts), each parameterised and scoped by company.
+**`pg` with hand-written SQL, no ORM.** This project relies more on PostgreSQL features than on plain CRUD: a generated column for the end date, CHECK constraints, composite foreign keys, a partial unique index and `SELECT … FOR UPDATE` row locks. Writing them in plain SQL keeps the migration as the single source of truth for the schema. The queries are easy to review: all 10 employee queries sit in one file, [`repository.ts`](src/employees/repository.ts), each parameterised and scoped by company (the 11th, the company lookup, is in `tenant.ts`).
 
 *Alternatives considered:*
 
 - **Prisma.** Its schema language can't describe CHECK constraints or generated columns, so those would live in hand-edited migrations outside the schema. Row locks need raw queries, and `DATE` columns come back as JavaScript `Date` objects, which this project deliberately avoids.
-- **Drizzle.** It could express almost all of this (checks, generated columns, `.for('update')`) and would add type-checked queries. With only 11 queries I chose fewer dependencies and SQL that is exactly what Postgres runs. If the schema grew, Drizzle would be my first choice.
+- **Drizzle.** It could express almost all of this (checks, generated columns, `.for('update')`) and would add type-checked queries. With only 11 queries in total I chose fewer dependencies and SQL that is exactly what Postgres runs. If the schema grew, Drizzle would be my first choice.
 
 **The end date is calculated by Postgres, never by JavaScript.** `probation_end_date` is a generated column: `join_date + make_interval(months => total_probation_months)`. That means:
 
