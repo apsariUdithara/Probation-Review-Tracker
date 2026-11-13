@@ -1,7 +1,18 @@
+# Dependencies and build output
 node_modules/
 dist/
+coverage/
+
+# Local settings (copy .env.example to .env)
 .env
+
+# Logs
+*.log
+
+# Editor and OS files
+.vscode/
+.DS_Store
+
+# Private notes
 research_notes/
 reports/
-
-/research-notes
