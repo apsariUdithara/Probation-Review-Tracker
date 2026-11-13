@@ -1,16 +1,20 @@
 import type pg from 'pg';
 import { withTransaction } from '../db.ts';
-import { bucketFor, type Bucket } from '../domain/probation.ts';
+import { assertCanExtend, bucketFor, type Bucket } from '../domain/probation.ts';
 import { ConflictError, NotFoundError } from '../errors.ts';
 import type { RequestContext } from '../tenant.ts';
 import {
+  addProbationMonths,
   findEmployee,
   insertAuditEvent,
   insertEmployee,
+  insertExtension,
+  listAuditEvents,
   listExtensions,
   listOpenProbations,
   lockEmployee,
   markConfirmed,
+  type AuditEvent,
   type Employee,
   type Extension,
   type OpenProbation,
@@ -62,6 +66,59 @@ export async function confirmEmployee(
     });
     return confirmed;
   });
+}
+
+export type ExtensionRequest = { months: number; reason: string };
+
+// Same lock-then-check pattern as confirm. The 6-month rule is checked BEFORE any write,
+// and any throw rolls back: a rejected request leaves total, end date, extensions and
+// audit log unchanged.
+export async function extendProbation(
+  pool: pg.Pool,
+  ctx: RequestContext,
+  id: string,
+  input: ExtensionRequest,
+): Promise<{ employee: Employee; extension: Extension }> {
+  return withTransaction(pool, async (client) => {
+    const current = await lockEmployee(client, ctx.companyId, id);
+    if (!current) throw new NotFoundError();
+    if (current.status === 'confirmed') throw new ConflictError();
+    assertCanExtend(current.totalProbationMonths, input.months);
+
+    const employee = await addProbationMonths(client, ctx.companyId, id, input.months);
+    const extension = await insertExtension(client, ctx.companyId, {
+      employeeId: id,
+      months: input.months,
+      reason: input.reason,
+      actor: ctx.actor,
+      previousEndDate: current.probationEndDate,
+      newEndDate: employee.probationEndDate,
+    });
+    await insertAuditEvent(client, ctx.companyId, {
+      employeeId: id,
+      action: 'probation.extended',
+      actor: ctx.actor,
+      details: {
+        months: input.months,
+        reason: input.reason,
+        previousEndDate: current.probationEndDate,
+        newEndDate: employee.probationEndDate,
+        newTotal: employee.totalProbationMonths,
+      },
+    });
+    return { employee, extension };
+  });
+}
+
+// The employee check comes first, so another company's employee is a 404, never an empty list.
+export async function getAuditEvents(
+  pool: pg.Pool,
+  ctx: RequestContext,
+  id: string,
+): Promise<{ items: AuditEvent[] }> {
+  const employee = await findEmployee(pool, ctx.companyId, id);
+  if (!employee) throw new NotFoundError();
+  return { items: await listAuditEvents(pool, ctx.companyId, id) };
 }
 
 export type ProbationList = {

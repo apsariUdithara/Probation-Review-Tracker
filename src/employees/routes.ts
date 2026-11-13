@@ -4,13 +4,22 @@ import type { AppDeps } from '../app.ts';
 import { isValidIsoDate } from '../domain/calendar.ts';
 import {
   DEFAULT_WITHIN_DAYS,
+  MAX_EXTENSION_MONTHS,
   MAX_PROBATION_MONTHS,
   MAX_WITHIN_DAYS,
+  MIN_EXTENSION_MONTHS,
   MIN_PROBATION_MONTHS,
 } from '../domain/probation.ts';
 import { NotFoundError } from '../errors.ts';
 import { getContext } from '../tenant.ts';
-import { confirmEmployee, createEmployee, getEmployee, listProbations } from './service.ts';
+import {
+  confirmEmployee,
+  createEmployee,
+  extendProbation,
+  getAuditEvents,
+  getEmployee,
+  listProbations,
+} from './service.ts';
 
 // HTTP only: validate input with Zod, call the service, choose the status code.
 // A ZodError thrown here becomes 400 VALIDATION_ERROR in the error handler.
@@ -35,6 +44,11 @@ const listProbationsQuery = z.object({
 // No body expected. `.optional()` because Express 5 leaves req.body undefined when no
 // body is sent; strictObject still rejects any field, e.g. { "force": true }.
 const confirmBody = z.strictObject({}).optional();
+
+const extensionBody = z.strictObject({
+  months: z.int().min(MIN_EXTENSION_MONTHS).max(MAX_EXTENSION_MONTHS),
+  reason: z.string().trim().min(1).max(500),
+});
 
 // A malformed id can't match any employee, so it gets the same 404 as "not found".
 function parseEmployeeId(raw: string): string {
@@ -66,6 +80,16 @@ export function employeeRoutes({ pool, clock }: AppDeps): Router {
     const id = parseEmployeeId(req.params.id);
     confirmBody.parse(req.body);
     res.json(await confirmEmployee(pool, getContext(res), id));
+  });
+
+  router.post('/employees/:id/extensions', async (req, res) => {
+    const id = parseEmployeeId(req.params.id);
+    const input = extensionBody.parse(req.body);
+    res.status(201).json(await extendProbation(pool, getContext(res), id, input));
+  });
+
+  router.get('/employees/:id/audit-events', async (req, res) => {
+    res.json(await getAuditEvents(pool, getContext(res), parseEmployeeId(req.params.id)));
   });
 
   return router;

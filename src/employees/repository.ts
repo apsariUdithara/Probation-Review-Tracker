@@ -125,14 +125,56 @@ export async function markConfirmed(
   return toEmployee(rows[0]!);
 }
 
+// Adds to the running total. Postgres then recomputes probation_end_date from join_date
+// (never from the old end date). The DB CHECK total <= 6 is the backstop for the rule.
+export async function addProbationMonths(
+  client: pg.PoolClient,
+  companyId: string,
+  id: string,
+  months: number,
+): Promise<Employee> {
+  const { rows } = await client.query<EmployeeRow>(
+    `UPDATE employees SET total_probation_months = total_probation_months + $3
+     WHERE id = $1 AND company_id = $2 AND status = 'on_probation'
+     RETURNING ${EMPLOYEE_COLUMNS}`,
+    [id, companyId, months],
+  );
+  if (rows.length !== 1) throw new Error(`addProbationMonths expected 1 row, updated ${rows.length}`);
+  return toEmployee(rows[0]!);
+}
+
+const EXTENSION_COLUMNS = `id, months, reason, actor,
+  previous_end_date AS "previousEndDate", new_end_date AS "newEndDate", created_at AS "createdAt"`;
+
+export async function insertExtension(
+  client: pg.PoolClient,
+  companyId: string,
+  ext: {
+    employeeId: string;
+    months: number;
+    reason: string;
+    actor: string;
+    previousEndDate: string;
+    newEndDate: string;
+  },
+): Promise<Extension> {
+  const { rows } = await client.query<Extension>(
+    `INSERT INTO probation_extensions
+       (company_id, employee_id, months, reason, actor, previous_end_date, new_end_date)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING ${EXTENSION_COLUMNS}`,
+    [companyId, ext.employeeId, ext.months, ext.reason, ext.actor, ext.previousEndDate, ext.newEndDate],
+  );
+  return rows[0]!;
+}
+
 export async function listExtensions(
   db: Queryable,
   companyId: string,
   employeeId: string,
 ): Promise<Extension[]> {
   const { rows } = await db.query<Extension>(
-    `SELECT id, months, reason, actor,
-            previous_end_date AS "previousEndDate", new_end_date AS "newEndDate", created_at AS "createdAt"
+    `SELECT ${EXTENSION_COLUMNS}
      FROM probation_extensions
      WHERE company_id = $1 AND employee_id = $2
      ORDER BY created_at, id`,
@@ -171,6 +213,31 @@ export async function listOpenProbations(
        AND probation_end_date <= $2::date + $3::int
      ORDER BY probation_end_date, name, id`,
     [companyId, today, withinDays],
+  );
+  return rows;
+}
+
+export type AuditEvent = {
+  id: string; // bigint: pg returns it as a string to avoid precision loss
+  action: AuditAction;
+  actor: string;
+  details: Record<string, unknown>;
+  occurredAt: Date;
+};
+
+// Append-only: this file has insertAuditEvent and listAuditEvents, and nothing that
+// updates or deletes audit rows. The identity id gives the natural order.
+export async function listAuditEvents(
+  db: Queryable,
+  companyId: string,
+  employeeId: string,
+): Promise<AuditEvent[]> {
+  const { rows } = await db.query<AuditEvent>(
+    `SELECT id, action, actor, details, occurred_at AS "occurredAt"
+     FROM audit_events
+     WHERE company_id = $1 AND employee_id = $2
+     ORDER BY id`,
+    [companyId, employeeId],
   );
   return rows;
 }
