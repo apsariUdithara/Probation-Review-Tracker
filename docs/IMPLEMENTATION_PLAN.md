@@ -3,6 +3,8 @@
 > Status: plan only. No application code yet. Each phase ends with a commit and a set of passing tests. Do not start a phase until the previous phase's "Tests that must pass" are green.
 >
 > **Architecture frozen.** Change it only if implementation reveals a concrete technical problem.
+>
+> **Submission:** public GitHub link to careers@hiremira.ai by Fri 13 Nov 2026, at the latest **Sat 14 Nov 2026, 11:59 PM Sri Lanka time**. Full scope is planned: nothing is cut.
 
 ## 1. Project overview
 
@@ -28,7 +30,7 @@ Build a small backend service that helps an HR team track employees on probation
 | R7 | Tests: ends today, 29 Feb join, extension over 6 months | Named tests (see §7.3) | `probations.test.ts`, `dates.test.ts`, `lifecycle.test.ts` |
 | R8 | README: run, design decisions, next steps, AI usage | `README.md` | Phase 9 |
 | R9 | Node.js + TypeScript, PostgreSQL with migrations | node-pg-migrate SQL migrations | Phase 1 |
-| Opt | React page | Not planned unless time remains (Phase 11) | — |
+| Opt | React page | Planned (Phase 11) | Manual check |
 
 ### 1.3 Technology stack
 
@@ -48,13 +50,13 @@ Build a small backend service that helps an HR team track employees on probation
 
 ### 1.4 Assumptions
 
-Email A1–A3 to the recruiter in Phase 0, then continue with the defaults. All assumptions go in the README.
+Email A1–A3 to the recruiter in Phase 0, then continue with the defaults. **Do not wait for a reply**: the deadline is too close. If an answer arrives, adjust. All assumptions go in the README.
 
 | # | Question | Default implemented | Email? |
 |---|---|---|---|
 | A1 | How does the API know the caller's company? The brief has no login. | **Demonstration header `X-Company-Id`**. Not authentication (see §5.7). | ✉ |
 | A2 | Is the end date the anniversary, or the day before it? | Anniversary: 2026-01-15 + 3 months → 2026-04-15 | ✉ |
-| A3 | Maximum N? Are overdue probations always shown? | N is a whole number 0–30, default 30. Overdue is always included (see §5.3). | ✉ |
+| A3 | Maximum N? Are overdue probations always shown? | N is a whole number 0–365, default 30. Overdue is always included. Rows 31..N days away go in a fourth `dueLater` group (see §5.3). | ✉ |
 | A4 | Who is "who" in the audit trail? | **Demonstration header `X-Actor-Id`**: self-reported, not verified | |
 | A5 | Can a confirmed employee be extended? | No → 409 | |
 | A6 | Can an employee be confirmed early, or after the end date? | Yes, both | |
@@ -245,12 +247,15 @@ If the generated column is accepted and all three pass, **keep it**. Do not move
 - `:id` must be a UUID. If it isn't, the response is **404 `EMPLOYEE_NOT_FOUND`**, the same as "doesn't exist / other company".
 - JSON bodies are **strict**: unknown fields (e.g. `companyId`) → 400. The company never comes from the body.
 - Error body: `{ "error": { "code": "...", "message": "...", "details": [ { "path": "joinDate", "message": "..." } ] } }` (`details` only for validation errors).
+- **Unknown routes** → 404 `NOT_FOUND` in the same JSON shape (a catch-all after the router), never Express's default HTML page. The catch-all is mounted after the tenant middleware, so an unknown route without headers still gets 401 first.
+- **Express 5 sets `req.body` to `undefined`** (not `{}`) when a request has no body or no `Content-Type: application/json`. Body schemas must account for this (see endpoint 4).
 
 | Status | Code(s) | Meaning |
 |---|---|---|
 | 400 | `VALIDATION_ERROR`, `INVALID_JSON` | Request is malformed |
 | 401 | `UNAUTHENTICATED` | Demo headers missing, invalid or unknown |
 | 404 | `EMPLOYEE_NOT_FOUND` | Doesn't exist **or belongs to another company** |
+| 404 | `NOT_FOUND` | Unknown route |
 | 409 | `ALREADY_CONFIRMED` | Current state forbids the action |
 | 422 | `MAX_PROBATION_EXCEEDED` | Valid input, but the 6-month rule says no |
 | 422 | `CONSTRAINT_VIOLATION` | Backstop: a DB CHECK rejected the write (should be unreachable) |
@@ -258,7 +263,9 @@ If the generated column is accepted and all three pass, **keep it**. Do not move
 
 ### 4.2 Employee object
 
-`{ id, name, joinDate, initialProbationMonths, totalProbationMonths, probationEndDate, status, confirmedAt, confirmedBy, createdAt }`
+`{ id, companyId, name, joinDate, initialProbationMonths, totalProbationMonths, probationEndDate, status, confirmedAt, confirmedBy, createdAt }`
+
+`companyId` is included so the response visibly shows the company the employee was recorded under (the brief's "add an employee with … company"). It always equals the caller's `X-Company-Id`.
 
 ### 4.3 The six endpoints
 
@@ -278,25 +285,26 @@ If the generated column is accepted and all three pass, **keep it**. Do not move
 
 **3. `GET /probations?withinDays=N`: grouped list (R2)**
 
-- `withinDays`: optional. If present it must be a digit string representing 0–30. Default 30. An empty value, `-1`, `31`, `abc` or `1.5` → 400.
+- `withinDays`: optional. If present it must be a single digit string representing 0–365. Default 30. An empty value, `-1`, `366`, `abc`, `1.5` or a repeated parameter (`?withinDays=1&withinDays=2`, which Express parses as an array) → 400.
 - **200**:
 
 ```
 {
   "asOf": "2026-11-13",
   "withinDays": 30,
-  "counts": { "overdue": 1, "dueWithin7Days": 2, "dueWithin30Days": 0 },
+  "counts": { "overdue": 1, "dueWithin7Days": 2, "dueWithin30Days": 0, "dueLater": 0 },
   "overdue":         [ { "id": "...", "name": "...", "joinDate": "...", "probationEndDate": "...", "totalProbationMonths": 3, "daysUntilEnd": -4 } ],
   "dueWithin7Days":  [ ... ],
-  "dueWithin30Days": [ ]
+  "dueWithin30Days": [ ],
+  "dueLater":        [ ]
 }
 ```
 
-- All three arrays are always present. Each is sorted by `probationEndDate`, then `name`, then `id`. Errors: 400, 401.
+- All four arrays are always present (`dueLater` is empty whenever N ≤ 30). Each is sorted by `probationEndDate`, then `name`, then `id`. Errors: 400, 401.
 
 **4. `POST /employees/:id/confirmation`: confirm (R3)**
 
-- No body is expected. A missing body or `{}` is accepted. A JSON body containing any field → 400 `VALIDATION_ERROR`. This is the same strict-body rule as every other endpoint, implemented as a strict empty-object schema.
+- No body is expected. A missing body or `{}` is accepted. A JSON body containing any field → 400 `VALIDATION_ERROR`. This is the same strict-body rule as every other endpoint, implemented as `z.strictObject({}).optional()`. The `.optional()` matters: in Express 5 a POST with no body leaves `req.body` as `undefined`, and without it a plain confirm would return 400.
 - **200** + updated employee. Errors: 401, 404, **409 `ALREADY_CONFIRMED`**.
 - Transaction: lock, check, UPDATE, INSERT `probation.confirmed` audit row.
 
@@ -308,7 +316,7 @@ If the generated column is accepted and all three pass, **keep it**. Do not move
 
 **6. `GET /employees/:id/audit-events`: audit trail (R5)**
 
-- **200** `{ "items": [ { id, action, actor, details, occurredAt } ] }`, oldest first. **404** if the employee is not in the caller's company (checked first, so the response is never an empty 200). Errors: 401, 404.
+- **200** `{ "items": [ { id, action, actor, details, occurredAt } ] }`, oldest first. `id` is a **string**: `pg` returns `bigint` as a string to avoid precision loss. This is kept as-is and documented, not converted. **404** if the employee is not in the caller's company (checked first, so the response is never an empty 200). Errors: 401, 404.
 
 ### 4.4 SQL inventory: every statement and its company scope
 
@@ -324,7 +332,7 @@ If the generated column is accepted and all three pass, **keep it**. Do not move
 | `listExtensions(companyId, employeeId)` | SELECT probation_extensions | `WHERE company_id AND employee_id` |
 | `insertAuditEvent(client, companyId, …)` | INSERT audit_events | `company_id` from ctx + composite FK |
 | `listAuditEvents(companyId, employeeId)` | SELECT audit_events | `WHERE company_id AND employee_id` |
-| `listOpenProbations(companyId, today, withinDays)` | SELECT employees | `WHERE company_id AND status = 'on_probation' AND probation_end_date <= $today + $n` |
+| `listOpenProbations(companyId, today, withinDays)` | SELECT employees | `WHERE company_id AND status = 'on_probation' AND probation_end_date <= $today::date + $n::int` (explicit casts so Postgres can infer the parameter types) |
 
 Rule for code review: **every function except `findCompany` takes `companyId` as its first data argument**, and every WHERE or INSERT uses it.
 
@@ -347,7 +355,7 @@ Validate → in one transaction INSERT the employee (`initial = total = probatio
 
 - **Today** = the calendar date in `APP_TIMEZONE` (Asia/Colombo), from `clock.today()`. Implemented as `todayIn(timeZone, now = new Date())`, which calls `Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now)`, picks the `year`, `month` and `day` parts, and assembles `YYYY-MM-DD` explicitly. This avoids depending on how a particular locale formats dates. It is passed to SQL as a parameter. **Never use `CURRENT_DATE`**: it depends on the DB server's timezone and can't be controlled in tests.
 - SQL returns `days_until_end = probation_end_date - $today::date`. A date minus a date gives an integer number of days.
-- **Window:** `probation_end_date <= $today::date + $withinDays`, with no lower bound.
+- **Window:** `probation_end_date <= $today::date + $withinDays::int`, with no lower bound.
   - So **overdue probations are always included**: an unconfirmed probation past its end date still needs action, however old it is.
   - N controls only how far into the future the list looks.
 - **Buckets** (pure `bucketFor(daysUntilEnd)`):
@@ -357,13 +365,15 @@ Validate → in one transaction INSERT the employee (`initial = total = probatio
 | < 0 | `overdue` | |
 | 0–7 | `dueWithin7Days` | **Ends today = 0 → due, not overdue** |
 | 8–30 | `dueWithin30Days` | |
+| 31+ | `dueLater` | Only possible when N > 30 |
 
-- **Why N is limited to 0–30 (documented assumption A3):** the brief defines exactly three groups, and the largest is "within 30 days".
-  - If N were 60, items 31–60 days away would fit no group. We would have to invent a fourth group or mislabel them as "within 30 days".
-  - With N ≤ 30, every returned row belongs to exactly one bucket.
-  - Small N simply narrows the list. For example, N = 5 returns overdue + days 0–5, so `dueWithin30Days` is empty.
+- **Why N is 0–365 with a `dueLater` group (documented assumption A3):** the brief defines three groups, the largest being "within 30 days", but doesn't limit N.
+  - Rejecting `withinDays=60` with a 400 would look like a bug to a reviewer.
+  - Mislabelling 31–60 days as "within 30 days" would be wrong.
+  - So rows beyond 30 days go in a fourth, clearly named `dueLater` group. Every returned row belongs to exactly one bucket.
+  - 365 is an upper bound that stops nonsense values; one year ahead covers any 1–6 month probation plus extensions.
+  - Small N simply narrows the list. For example, N = 5 returns overdue + days 0–5, so `dueWithin30Days` and `dueLater` are empty.
   - N = 0 returns overdue + ending today.
-- *Alternative, if the recruiter says N can be larger:* accept 0–365 and add a fourth `dueLater` array (31..N). That is one extra branch in `bucketFor` plus one test.
 
 ### 5.4 Confirmation (concurrency-safe)
 
@@ -428,7 +438,7 @@ Any thrown error → ROLLBACK, so **no audit row is written**. The partial UNIQU
 - Parameterised SQL only (`$1, $2`), never string concatenation, which prevents SQL injection.
 - Zod schemas are strict. Body strings are trimmed. Numbers are not coerced from strings in JSON bodies.
 - **Calendar dates are validated without JavaScript `Date`.** `src/domain/calendar.ts` has three functions: `isLeapYear` (divisible by 4, except century years unless divisible by 400), `daysInMonth` and `isValidIsoDate`. `Date`/`Date.UTC` would bring two problems: years 0–99 are reinterpreted as 1900–1999, and parsing involves timezones. Plain integer checks avoid both and are easy to unit-test.
-- Query parameter `withinDays`: a digit-string check first, then a number in the 0–30 range. This avoids `""` becoming 0.
+- Query parameter `withinDays`: a digit-string check first, then a number in the 0–365 range. This avoids `""` becoming 0.
 - `express.json()` default 100 kb limit. Malformed JSON → 400 `INVALID_JSON`.
 - 500 responses never include stack traces, SQL text, constraint names or any other database detail. Those go to the server log only (§5.9).
 - `.env` is git-ignored. Only made-up data.
@@ -439,6 +449,7 @@ Any thrown error → ROLLBACK, so **no audit row is written**. The partial UNIQU
 |---|---|
 | `ZodError` | 400 `VALIDATION_ERROR` with `details` |
 | Body-parser JSON syntax error | 400 `INVALID_JSON` |
+| No route matched (catch-all) | 404 `NOT_FOUND` |
 | `UnauthenticatedError` | 401 |
 | `NotFoundError` | 404 `EMPLOYEE_NOT_FOUND` |
 | `ConflictError` | 409 `ALREADY_CONFIRMED` |
@@ -467,6 +478,8 @@ Any thrown error → ROLLBACK, so **no audit row is written**. The partial UNIQU
 |---|---|---|
 | Dates | Ended yesterday | overdue, −1 |
 | Dates | Ends in 7 / 8 / 30 / 31 days (N = 30) | due7 / due30 / due30 / not listed |
+| Window | Ends in 31 / 60 / 61 days (N = 60) | dueLater / dueLater / not listed |
+| Window | N = 365 | 200; N = 366 → 400 |
 | Dates | Overdue by 400 days | Still listed as overdue |
 | Dates | Clamp: 2025-08-31 + 6 | 2026-02-28 |
 | Dates | Leap clamp: 2023-08-31 + 6 | 2024-02-29 |
@@ -482,7 +495,10 @@ Any thrown error → ROLLBACK, so **no audit row is written**. The partial UNIQU
 | Validation | Extra body field `companyId` | 400 |
 | Validation | Confirm with body `{ "force": true }` | 400 |
 | Validation | Malformed JSON | 400 `INVALID_JSON` |
-| Validation | `withinDays` empty, −1, 31, abc, 1.5; omitted | 400; omitted → 30 |
+| Validation | `withinDays` empty, −1, 366, abc, 1.5, repeated; omitted | 400; omitted → 30 |
+| Validation | Confirm with no body at all | 200 (Express 5 `req.body` is `undefined`) |
+| Routing | Unknown route, e.g. `GET /nope` with valid headers | 404 `NOT_FOUND` JSON |
+| Response | Employee object | Includes `companyId` equal to the caller's company |
 | Window | N = 0 | overdue + ending today only |
 | Limits | 6 + 1 | 422 |
 | Limits | 3 + 3 | 201, total 6 |
@@ -518,13 +534,13 @@ Any thrown error → ROLLBACK, so **no audit row is written**. The partial UNIQU
 
 | Layer | File | Covers | DB? |
 |---|---|---|---|
-| Unit | `test/unit/probation.test.ts` | `bucketFor` (−1, 0, 7, 8, 30); `assertCanExtend` (3+3 ok, 4+3 / 6+1 throw) | No |
+| Unit | `test/unit/probation.test.ts` | `bucketFor` (−1, 0, 7, 8, 30, 31); `assertCanExtend` (3+3 ok, 4+3 / 6+1 throw) | No |
 | Unit | `test/unit/calendar.test.ts` | `isLeapYear` (1900 no, 2000 yes, 2024 yes, 2100 no); `daysInMonth`; `isValidIsoDate` (malformed strings, month 13, 04-31, 02-29 in leap and non-leap years, year 0000) | No |
 | Unit | `test/unit/clock.test.ts` | `todayIn('Asia/Colombo', 2026-11-12T19:00Z)` → `2026-11-13` | No |
 | Database | `test/integration/schema.test.ts` | Direct SQL: CHECK rejects total 7, months 4, half-confirmed row, blank `confirmed_by`; composite FK rejects a cross-company extension/audit row; generated end date for 2024-02-29+3, 2025-08-31+6, 2023-08-31+6; UPDATE total 3→4 on join 2025-11-30 gives 2026-03-30; partial unique index rejects a 2nd confirmation event | Yes |
 | Dates (API) | `test/integration/dates.test.ts` | 29 Feb, clamp, no chaining, invalid dates, round-trip | Yes |
 | Create/get | `test/integration/employees.test.ts` | 201 + Location, response shape, validation 400s, 404s | Yes |
-| List | `test/integration/probations.test.ts` | **Ends today**, boundaries, old overdue, N = 0, default N, `withinDays` 400s, confirmed excluded, sort order | Yes |
+| List | `test/integration/probations.test.ts` | **Ends today**, boundaries, old overdue, N = 0, default N, N = 60 `dueLater`, N = 365/366, `withinDays` 400s, confirmed excluded, sort order | Yes |
 | Lifecycle | `test/integration/lifecycle.test.ts` | Confirm, **confirm twice**, extend, exactly 6, **over 6** with no side effects, extend after confirm, audit contents, concurrency | Yes |
 | Isolation | `test/integration/isolation.test.ts` | 401 header cases; cross-company 404 on all employee endpoints; list exclusion; no side effects | Yes |
 
@@ -541,13 +557,13 @@ Any thrown error → ROLLBACK, so **no audit row is written**. The partial UNIQU
   - Then, as A: E is still `on_probation`, its total is unchanged, and the audit count is unchanged.
 - **Sequential behaviour (required):** confirm, then confirm again → 200 then 409 (covered above). This is what "cannot be confirmed twice" means.
 - **Concurrent-request integration test:** `Promise.all` of two confirms (and of two +3 extensions). Assert that exactly one succeeds, then check the final DB state and the audit count. *What it is and isn't:* it checks the invariant under concurrent requests, but it **doesn't prove the two requests actually overlapped**. The guarantee comes from the row lock (§5.4), with the partial unique index as an extra safeguard.
-- **Optional deterministic concurrency test (COULD, only if time permits):**
+- **Deterministic concurrency test (planned, Phase 6):**
   1. A separate test client runs `BEGIN` and `SELECT … FOR UPDATE` on the employee, which locks the row.
   2. Send the API confirm, but don't await it yet.
   3. Poll `pg_stat_activity` on the test DB until a backend shows `wait_event_type = 'Lock'`, with a short timeout. This proves the API request has actually reached the row lock and is waiting on it.
   4. Only then does the test client mark the employee confirmed and `COMMIT`.
   5. The API request resolves 409, and no second audit row exists.
-  This proves the waiting behaviour. It is an improvement, not a reason to delay the core work.
+  This proves the waiting behaviour that the `Promise.all` test cannot.
 
 ### 7.4 Commands
 
@@ -595,13 +611,13 @@ Probation-Review-Tracker/
 
 ## 9. Implementation phases
 
-**Priority key:** **MUST** = required by the brief or for correctness · **SHOULD** = strongly recommended · **COULD** = only if time remains.
+**Priority key:** **MUST** = required by the brief or for correctness · **planned** = not required by the brief, but in scope. Every phase is done.
 
 ### Phase 0: Setup (MUST, 30–45 min)
 
 - **Objective:** a working TypeScript + Vitest skeleton, and the recruiter email sent.
 - **Tasks:**
-  1. Email A1–A3.
+  1. Email A1–A3. Don't wait for the reply; build on the defaults.
   2. Confirm `.gitignore`.
   3. `npm init`; set `"type": "module"` and `"engines"`.
   4. Install express, pg, zod, plus dev deps: typescript, @types/node, @types/express, @types/pg, vitest, supertest, @types/supertest, node-pg-migrate@9. Check versions with `npm view`.
@@ -626,7 +642,7 @@ Probation-Review-Tracker/
 - **Tasks:**
   1. `docker-compose.yml` (postgres:17, port 5432, healthcheck, volume, init script) and `docker/init-test-db.sql`. Compose hardcodes made-up, local-only dev credentials, so it doesn't depend on `.env`. `.env` holds only `DATABASE_URL`, `TEST_DATABASE_URL`, `PORT` and `APP_TIMEZONE`.
   2. `.env` from `.env.example`.
-  3. `scripts/migrate.ts`. **Verify first:** a throwaway `.sql` migration runs up/down through the programmatic runner. If not, switch to the `.ts` + `pgm.sql()` fallback (§3.7).
+  3. `scripts/migrate.ts`. Pass `migrationsTable: 'pgmigrations'` (a required runner option), `dir: 'migrations'`, `direction`, `databaseUrl`, and `count: 1` for down. **Verify first:** a throwaway `.sql` migration runs up/down through the programmatic runner. If not, switch to the `.ts` + `pgm.sql()` fallback (§3.7).
   4. Init migration: tables, constraints, generated column, indexes; plus the down section. **Verify** the generated column is accepted; if not, use the fallback (§3.3).
   5. (The seed script moves to the end of Phase 2, because it needs `src/clock.ts`.)
 - **Files:** `docker-compose.yml`, `docker/init-test-db.sql`, `.env.example`, `migrations/*_init.sql`, `scripts/migrate.ts`
@@ -640,7 +656,7 @@ Probation-Review-Tracker/
 
 - **Objective:** the rules exist as tested pure functions.
 - **Tasks:**
-  - `src/domain/probation.ts`: `MAX_PROBATION_MONTHS`, `MIN_/MAX_EXTENSION_MONTHS`, `MAX_WITHIN_DAYS = 30`, `Bucket` union, `bucketFor`, `assertCanExtend`
+  - `src/domain/probation.ts`: `MAX_PROBATION_MONTHS`, `MIN_/MAX_EXTENSION_MONTHS`, `MAX_WITHIN_DAYS = 365`, `Bucket` union (`overdue | dueWithin7Days | dueWithin30Days | dueLater`), `bucketFor`, `assertCanExtend`
   - `src/domain/calendar.ts`: `isLeapYear`, `daysInMonth`, `isValidIsoDate`. Integer checks only, no `Date` (§5.8).
   - `src/clock.ts`: `Clock`, `todayIn(timeZone, now?)` built from `formatToParts()` (§5.3), `systemClock(timeZone)`
   - error classes in `src/errors.ts`
@@ -665,12 +681,13 @@ Probation-Review-Tracker/
   - `config.ts` (Zod env)
   - `db.ts` (Pool, `setTypeParser(1082)`, `withTransaction`: one checked-out client, BEGIN/COMMIT/ROLLBACK, `release` in `finally`)
   - error middleware (§5.9)
+  - JSON 404 catch-all for unknown routes (§4.1)
   - `tenant.ts`, `app.ts`, `server.ts`
   - `test/global-setup.ts` (with the `_test` guard), `test/helpers.ts`, `vitest.config.ts`
   - `schema.test.ts`, plus the 401 cases in `isolation.test.ts`
   - **Keep the harness lean:** build only what the next phases need (`resetDb`, `createCompany`, `api()`). Don't perfect the test infrastructure before the features exist.
 - **Concepts:** middleware order; `res.locals`; 4-argument error middleware; pool vs client; why a transaction needs one client; DI by passing arguments.
-- **Must pass:** schema tests (CHECKs including the half-confirmed row, composite FK, generated dates, unique confirmation index); 401 tests; unit tests; `npm run dev` starts.
+- **Must pass:** schema tests (CHECKs including the half-confirmed row, composite FK, generated dates, unique confirmation index); 401 tests; unknown route → 404 `NOT_FOUND` JSON; unit tests; `npm run dev` starts.
 - **Commit:** `feat: app skeleton, demo-header tenant middleware, errors, test harness`
 
 ### Phase 4: Create and view employees (MUST, 45–60 min)
@@ -683,7 +700,7 @@ Probation-Review-Tracker/
   - routes; mount the router
 - **Files:** `src/employees/*.ts`, `src/app.ts`, `test/integration/dates.test.ts`, `employees.test.ts`
 - **Concepts:** parameterised queries; snake_case → camelCase mapping; month clamping; dates as strings; 201 + Location.
-- **Must pass:** the **29 Feb** test; clamp and leap-clamp; invalid dates → 400; create validation; unknown or non-UUID id → 404.
+- **Must pass:** the **29 Feb** test; clamp and leap-clamp; invalid dates → 400; create validation; response includes `companyId`; unknown or non-UUID id → 404.
 - **Commit:** `feat: create and fetch employees`
 
 ### Phase 5: Grouped list (MUST, 45–60 min)
@@ -696,15 +713,15 @@ Probation-Review-Tracker/
   - `GET /probations` route
 - **Files:** `src/employees/*.ts`, `test/integration/probations.test.ts`
 - **Concepts:** date − date = integer and date + integer = date in SQL; query strings are strings; partial index matching (keep `status = 'on_probation'` written literally).
-- **Must pass:** **ends today**; yesterday; 7/8/30/31; old overdue; N = 0; default; `withinDays` 400s; confirmed excluded; sort.
+- **Must pass:** **ends today**; yesterday; 7/8/30/31; old overdue; N = 0; default; N = 60 → `dueLater`; N = 365 ok / 366 → 400; `withinDays` 400s; confirmed excluded; sort.
 - **Commit:** `feat: list probations grouped by urgency`
 
 ### Phase 6: Confirm (MUST, 30–45 min)
 
 - **Objective:** R3, concurrency-safe and audited.
-- **Tasks:** `lockEmployee`, `markConfirmed` (with the status guard and a 1-row check); `confirmEmployee` service; route.
+- **Tasks:** `lockEmployee`, `markConfirmed` (with the status guard and a 1-row check); `confirmEmployee` service; route with `z.strictObject({}).optional()` body schema; deterministic lock test (§7.3).
 - **Concepts:** transactions; `SELECT … FOR UPDATE`; READ COMMITTED re-read after waiting; 409 vs 422.
-- **Must pass:** confirm 200 with `confirmedAt`/`confirmedBy`; **confirm twice** → 409 with one audit row; concurrent-request test {200, 409}. Optional: the deterministic lock test from §7.3.
+- **Must pass:** confirm 200 with `confirmedAt`/`confirmedBy`; confirm with no body → 200; **confirm twice** → 409 with one audit row; concurrent-request test {200, 409}; deterministic lock test from §7.3.
 - **Commit:** `feat: confirm probation with row lock and audit event`
 
 ### Phase 7: Extend and audit history (MUST, 60–75 min)
@@ -736,14 +753,15 @@ Probation-Review-Tracker/
   - read every file and confirm you can explain each line
 - **Commit:** `docs: README with setup, design decisions, assumptions and next steps`
 
-### Phase 10: CI (COULD, 15–20 min)
+### Phase 10: CI (planned, 15–20 min)
 
 - `.github/workflows/ci.yml`: ubuntu, `postgres:17` service + `pg_isready`, create `probation_test`, `npm ci`, typecheck, test.
 - **Commit:** `ci: run typecheck and tests with Postgres`
 
-### Phase 11: React page (COULD, ~60 min; skip unless everything else is done)
+### Phase 11: React page (planned, ~60 min)
 
-- Vite + React in `web/`: three bucket lists, a dev proxy to the API, and the demo headers set from a company selector.
+- Vite + React in `web/`: four bucket lists (incl. `dueLater`), a `withinDays` input, a dev proxy to the API, and the demo headers set from a company selector.
+- Add its run command to the README quick start.
 - **Commit:** `feat(web): probation list page`
 
 ### Before submitting (15 min)
@@ -753,18 +771,19 @@ Probation-Review-Tracker/
 - Rehearse live changes:
   - cap → 9 months: constant + a new migration changing the CHECK
   - "fail probation": new status value via migration + route + service
-  - `dueLater` bucket: `bucketFor` + `MAX_WITHIN_DAYS`
-- Email the link.
+  - change a bucket boundary (e.g. "due within 14 days"): `bucketFor` + its tests
+- Email the link to careers@hiremira.ai before **Sat 14 Nov, 11:59 PM Sri Lanka time**.
 
 ### Time estimate (realistic)
 
 | Scope | Estimate |
 |---|---|
-| MUST (Phases 0–9) | **≈ 7.5–9.5 h**, depending on setup issues and time spent on unfamiliar concepts. The phase estimates add up to about 7h25–9h40. |
+| Phases 0–9 (incl. `dueLater` and the deterministic lock test) | **≈ 8–10 h** |
 | + CI | +15–20 min |
 | + React | +1 h |
+| **Total** | **≈ 9.5–11.5 h** |
 
-The brief expects 6–8 h, so be ready to prioritise. Don't assume the optional items will fit. If running behind: keep every MUST, skip CI and React, and simplify the seed data. **Never** cut the isolation test, the transactions, or the required edge-case tests.
+Full scope is planned; nothing is cut. Work the phases in order so the repo is always in a working, committed state. Push to GitHub after every phase, so a submittable version always exists before the deadline.
 
 ## 10. README plan
 
@@ -780,6 +799,7 @@ The brief expects 6–8 h, so be ready to prioritise. Don't assume the optional 
      5. `npm run seed`
      6. `npm run dev`
      7. `npm test`
+   - React page: its run command (Phase 11)
    - troubleshooting: port 5432 busy; `docker compose down -v` to recreate the test DB
 4. **API reference:** the six endpoints, status-code table, example `curl` calls with the demo headers.
 5. **Design decisions**, each with the alternative considered:
@@ -790,7 +810,7 @@ The brief expects 6–8 h, so be ready to prioritise. Don't assume the optional 
    - row lock + same-transaction audit
    - composite FKs and CHECKs
    - 404-not-403
-   - N ≤ 30 and bucket rules
+   - N 0–365, the `dueLater` group and bucket rules
    - 400/401/404/409/422 policy
 6. **Assumptions:** A1–A12, plus any recruiter answers.
 7. **Security note:** the demo headers are not authentication, and the actor is self-reported.
@@ -806,6 +826,5 @@ The brief expects 6–8 h, so be ready to prioritise. Don't assume the optional 
    - OpenAPI
    - reminders
    - structured logging
-   - CI/React (if skipped)
 10. **AI usage:** tools used and what for; what you verified (ran tests, read every line); what you changed or rejected.
 11. **Time spent.**
