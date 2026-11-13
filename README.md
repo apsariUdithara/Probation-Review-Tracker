@@ -16,6 +16,7 @@ Built with Node.js 24 + TypeScript, Express 5, PostgreSQL 17 (with migrations), 
 | Company data kept separate, with a test proving it | Company filter on every query + composite foreign keys | `test/integration/isolation.test.ts` |
 | Edge cases: ends today, 29 February join, extension over 6 months | | See [Testing](#testing) |
 | PostgreSQL with migrations | `migrations/` (node-pg-migrate) | `npm run migrate` |
+| Optional: a simple React page that shows the list | `web/` | `npm run dev --prefix web` |
 
 ## Quick start
 
@@ -39,6 +40,15 @@ npm run typecheck   # tsc --noEmit
 ```
 
 There is no build step: Node 24 runs the `.ts` files directly (type stripping) and `tsc` only checks types.
+
+**Optional React page** that shows the grouped list. Keep the API running (`npm run dev`) and, in a second terminal:
+
+```sh
+npm ci --prefix web
+npm run dev --prefix web      # http://localhost:5173
+```
+
+Pick a seeded company and a window (0–365 days). The page is read-only. Vite forwards `/api/*` to the API on port 3000, and the page sends the same demo headers as any other client. Because there is no companies endpoint, it lists the two companies created by `npm run seed`.
 
 **Troubleshooting**
 
@@ -243,6 +253,7 @@ src/
   employees/         routes.ts → service.ts → repository.ts
 test/unit/           fast, no database
 test/integration/    HTTP and SQL against the test database
+web/                 optional React page (Vite): the grouped list
 docs/                the implementation plan
 ```
 

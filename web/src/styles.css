@@ -1,0 +1,166 @@
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --text: #1c2233;
+  --muted: #5d6680;
+  --border: #dde1ec;
+  --overdue: #c62828;
+  --due7: #b25e00;
+  --due30: #1d5fbf;
+  --later: #5d6680;
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12151f;
+    --surface: #1b2030;
+    --text: #e6e9f2;
+    --muted: #9aa3bd;
+    --border: #2d3449;
+    --overdue: #ff7a7a;
+    --due7: #f0a54a;
+    --due30: #7fb0ff;
+    --later: #9aa3bd;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.as-of {
+  margin: 0;
+  color: var(--muted);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+select {
+  font: inherit;
+  font-size: 1rem;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.group {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+}
+
+.overdue { --accent: var(--overdue); }
+.dueWithin7Days { --accent: var(--due7); }
+.dueWithin30Days { --accent: var(--due30); }
+.dueLater { --accent: var(--later); }
+
+h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+}
+
+.count {
+  min-width: 1.6em;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--surface);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* A wide table scrolls inside its card instead of widening the whole page. */
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+th,
+td {
+  padding: 8px 6px;
+  text-align: left;
+  border-top: 1px solid var(--border);
+}
+
+th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+  border-top: none;
+}
+
+.days {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.empty,
+.message {
+  margin: 0;
+  color: var(--muted);
+}
+
+.message.error {
+  color: var(--overdue);
+}
+
+/* Narrow screens: drop the join-date column so the table fits without scrolling. */
+@media (max-width: 560px) {
+  th:nth-child(2),
+  td:nth-child(2) {
+    display: none;
+  }
+}

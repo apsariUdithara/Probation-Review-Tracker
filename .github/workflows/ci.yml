@@ -44,3 +44,7 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+
+      # The React page: type-check and build (no tests; it only displays the API's list).
+      - run: npm ci --prefix web
+      - run: npm run build --prefix web
