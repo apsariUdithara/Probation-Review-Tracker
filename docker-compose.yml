@@ -1,0 +1,22 @@
+# Local development database only. Credentials are made up and match .env.example.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: probation
+      POSTGRES_PASSWORD: probation
+      POSTGRES_DB: probation
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Runs only when the volume is first created. Recreate with: docker compose down -v
+      - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U probation -d probation"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  pgdata:
