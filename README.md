@@ -144,6 +144,38 @@ Every error has the same shape: `{ "error": { "code", "message", "details"? } }`
 | 422 | `CONSTRAINT_VIOLATION` | A database rule rejected the write. This is a backstop and should be unreachable. |
 | 500 | `INTERNAL_ERROR` | Unexpected. The details go to the server log, never to the client. |
 
+## Architecture
+
+Generated from [`scripts/gen-diagrams.ts`](scripts/gen-diagrams.ts) (`npm run diagrams`). The colours mean the same thing in every diagram.
+
+**Where does each response come from?** The five stages in `createApp()`, and every status code each one can produce:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/request-pipeline-dark.svg">
+  <img src="docs/diagrams/request-pipeline-light.svg" alt="A request passes express.json, tenantMiddleware, employeeRoutes, service.ts and repository.ts with PostgreSQL in that order. The route handler sends 200 or 201. Each stage can instead throw its own errors (400 INVALID_JSON, 401 UNAUTHENTICATED, 400 VALIDATION_ERROR, 404, 409 ALREADY_CONFIRMED, 422 MAX_PROBATION_EXCEEDED, database backstops, 500), and all of them go through errorHandler, except unknown routes, which notFoundHandler answers directly.">
+</picture>
+
+**What happens when two people confirm the same employee at once?**
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/concurrent-confirm-dark.svg">
+  <img src="docs/diagrams/concurrent-confirm-light.svg" alt="Sequence of two simultaneous confirmations: request A takes the row lock with SELECT FOR UPDATE, request B blocks on it; A updates the status, writes the probation.confirmed audit row and commits, returning 200; B then re-reads the row as confirmed, throws ConflictError, rolls back and returns 409.">
+</picture>
+
+**Which actions are allowed in which state?**
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/employee-lifecycle-dark.svg">
+  <img src="docs/diagrams/employee-lifecycle-light.svg" alt="State machine with two states. Creating an employee enters on_probation. Extending loops on on_probation while the total stays at or below 6 months. Confirming moves to confirmed, which is final. Extending past 6 months returns 422 and acting on a confirmed employee returns 409, both without changing state. Overdue and due soon are computed at read time, not stored.">
+</picture>
+
+**How is one company's data kept from another?**
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/company-isolation-dark.svg">
+  <img src="docs/diagrams/company-isolation-light.svg" alt="Two layers of isolation. In the application, the company comes only from the X-Company-Id header, is checked by tenantMiddleware and passed as ctx.companyId to all ten repository functions, which filter by company_id, so another company's employee returns 404 like a missing one. In the database, probation_extensions and audit_events reference employees through the composite foreign key (company_id, employee_id), so a cross-company row is rejected.">
+</picture>
+
 ## Design decisions
 
 **Layers.** `routes` (validation, status codes) → `service` (use cases, transactions) → `repository` (SQL only). Pure business rules live in `src/domain/` and have no database or HTTP code. `createApp({ pool, clock })` builds the app without opening a port, so tests inject the test database and a fixed date.
@@ -244,7 +276,7 @@ Test safety: the test setup refuses to run unless the database name ends in `_te
 
 ```
 migrations/          the only schema definition (SQL, up + down)
-scripts/             migrate.ts (the only migration runner), seed.ts
+scripts/             migrate.ts (the only migration runner), seed.ts, gen-diagrams.ts
 src/
   server.ts          entry point: config → pool → app → listen
   app.ts             createApp({ pool, clock }): middleware and routes

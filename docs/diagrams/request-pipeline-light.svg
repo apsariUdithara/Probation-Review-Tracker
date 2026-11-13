@@ -1,0 +1,172 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 626" width="1140" height="626" role="img" aria-labelledby="title desc">
+<title id="title">Request pipeline: where every response comes from</title>
+<desc id="desc">A request passes five stages in order: 1 express.json, 2 tenantMiddleware, 3 employeeRoutes, 4 service.ts, 5 repository.ts and PostgreSQL. Success responses (200 or 201) are sent by the route handler. Each stage can instead throw: 1 gives 400 INVALID_JSON or 413; 2 gives 401 UNAUTHENTICATED; 3 gives 400 VALIDATION_ERROR or 404 EMPLOYEE_NOT_FOUND for a non-UUID id, and unmatched routes get 404 NOT_FOUND from notFoundHandler; 4 gives 404 EMPLOYEE_NOT_FOUND, 409 ALREADY_CONFIRMED or 422 MAX_PROBATION_EXCEEDED; 5 gives database backstops 422 CONSTRAINT_VIOLATION and 400, or 500 INTERNAL_ERROR. All thrown errors go through errorHandler. Writes run in a transaction, so a rejected request leaves no change and no audit row.</desc>
+<defs><marker id="arrow-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#1b2235"/></marker><marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6480"/></marker><marker id="arrow-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c5cbdc"/></marker><marker id="arrow-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#3b5bdb"/></marker><marker id="arrow-success" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#2b8a3e"/></marker><marker id="arrow-rejected" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#b35c00"/></marker><marker id="arrow-fault" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#c92a2a"/></marker><marker id="arrow-waiting" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#7048e8"/></marker><marker id="arrow-store" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#0b7285"/></marker></defs>
+<rect width="1140" height="626" rx="12" fill="#f6f7fb"/>
+<text x="24" y="36" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#1b2235" text-anchor="start">Request pipeline: where every response comes from</text>
+<text x="24" y="58" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#5b6480" text-anchor="start">createApp() in src/app.ts mounts these stages in order. Each one passes the request on or throws; the numbers tie every outcome to its stage.</text>
+<rect x="20" y="118" width="110" height="100" rx="8" fill="#ffffff" stroke="#c5cbdc" stroke-width="1.5"/>
+<text x="75" y="148" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1b2235" text-anchor="middle">Client</text>
+<text x="75" y="170" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="middle">curl, web/ page,</text>
+<text x="75" y="186" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="middle">supertest</text>
+<path d="M 130 168 L 148 168" fill="none" stroke="#3b5bdb" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
+<path d="M 632 118 L 632 96 L 75 96 L 75 116" fill="none" stroke="#2b8a3e" stroke-width="1.6" marker-end="url(#arrow-success)"/>
+<text x="150" y="90" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#2b8a3e" text-anchor="start">2xx JSON, sent by the route handler: 201 for create and extend, 200 otherwise</text>
+<rect x="150" y="118" width="180" height="100" rx="8" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
+<circle cx="168" cy="139" r="9" fill="#3b5bdb"/>
+<text x="168" y="143" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">1</text>
+<text x="184" y="144" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">express.json()</text>
+<text x="164" y="168" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">parses the JSON body</text>
+<text x="164" y="184" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">limit 100 kb</text>
+<path d="M 330 168 L 344 168" fill="none" stroke="#3b5bdb" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
+<path d="M 240 218 L 240 250" fill="none" stroke="#5b6480" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow-muted)"/>
+<rect x="150" y="252" width="180" height="60" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
+<circle cx="166" cy="269" r="9" fill="#3b5bdb"/>
+<text x="166" y="273" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">1</text>
+<text x="182" y="274" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">400</text>
+<text x="162" y="292" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#b35c00" text-anchor="start">INVALID_JSON</text>
+<text x="162" y="308" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">malformed JSON body</text>
+<path d="M 330 282 L 338 282" fill="none" stroke="#5b6480" stroke-width="1.6"/>
+<rect x="150" y="322" width="180" height="60" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
+<circle cx="166" cy="339" r="9" fill="#3b5bdb"/>
+<text x="166" y="343" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">1</text>
+<text x="182" y="344" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">413</text>
+<text x="162" y="362" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#b35c00" text-anchor="start">INVALID_REQUEST</text>
+<text x="162" y="378" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">body over 100 kb</text>
+<path d="M 330 352 L 338 352" fill="none" stroke="#5b6480" stroke-width="1.6"/>
+<rect x="346" y="118" width="180" height="100" rx="8" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
+<circle cx="364" cy="139" r="9" fill="#3b5bdb"/>
+<text x="364" y="143" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">2</text>
+<text x="380" y="144" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">tenantMiddleware</text>
+<text x="360" y="168" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">X-Company-Id: a known</text>
+<text x="360" y="184" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">company · X-Actor-Id</text>
+<text x="360" y="200" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">→ res.locals.ctx</text>
+<path d="M 526 168 L 540 168" fill="none" stroke="#3b5bdb" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
+<path d="M 436 218 L 436 250" fill="none" stroke="#5b6480" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow-muted)"/>
+<rect x="346" y="252" width="180" height="74" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
+<circle cx="362" cy="269" r="9" fill="#3b5bdb"/>
+<text x="362" y="273" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">2</text>
+<text x="378" y="274" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">401</text>
+<text x="358" y="292" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#b35c00" text-anchor="start">UNAUTHENTICATED</text>
+<text x="358" y="308" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">header missing or malformed,</text>
+<text x="358" y="322" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">or company unknown</text>
+<path d="M 526 289 L 534 289" fill="none" stroke="#5b6480" stroke-width="1.6"/>
+<rect x="542" y="118" width="180" height="100" rx="8" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
+<circle cx="560" cy="139" r="9" fill="#3b5bdb"/>
+<text x="560" y="143" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">3</text>
+<text x="576" y="144" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">employeeRoutes</text>
+<text x="556" y="168" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">Zod: body, query, :id</text>
+<text x="556" y="184" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">then calls the service</text>
+<text x="556" y="200" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">sends 2xx on success</text>
+<path d="M 722 168 L 736 168" fill="none" stroke="#3b5bdb" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
+<path d="M 632 218 L 632 250" fill="none" stroke="#5b6480" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow-muted)"/>
+<rect x="542" y="252" width="180" height="60" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
+<circle cx="558" cy="269" r="9" fill="#3b5bdb"/>
+<text x="558" y="273" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">3</text>
+<text x="574" y="274" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">400</text>
+<text x="554" y="292" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#b35c00" text-anchor="start">VALIDATION_ERROR</text>
+<text x="554" y="308" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">ZodError: body or withinDays</text>
+<path d="M 722 282 L 730 282" fill="none" stroke="#5b6480" stroke-width="1.6"/>
+<rect x="542" y="322" width="180" height="60" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
+<circle cx="558" cy="339" r="9" fill="#3b5bdb"/>
+<text x="558" y="343" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">3</text>
+<text x="574" y="344" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">404</text>
+<text x="554" y="362" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#b35c00" text-anchor="start">EMPLOYEE_NOT_FOUND</text>
+<text x="554" y="378" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">:id is not a UUID</text>
+<path d="M 722 352 L 730 352" fill="none" stroke="#5b6480" stroke-width="1.6"/>
+<rect x="542" y="392" width="180" height="74" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
+<circle cx="558" cy="409" r="9" fill="#3b5bdb"/>
+<text x="558" y="413" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">3</text>
+<text x="574" y="414" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">404</text>
+<text x="554" y="432" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#b35c00" text-anchor="start">NOT_FOUND</text>
+<text x="554" y="448" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">no route matched: sent</text>
+<text x="554" y="462" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">directly by notFoundHandler</text>
+<rect x="738" y="118" width="180" height="100" rx="8" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
+<circle cx="756" cy="139" r="9" fill="#3b5bdb"/>
+<text x="756" y="143" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">4</text>
+<text x="772" y="144" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">service.ts</text>
+<text x="752" y="168" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">writes run inside</text>
+<text x="752" y="184" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">withTransaction: lock,</text>
+<text x="752" y="200" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">rules, change, audit row</text>
+<path d="M 918 168 L 932 168" fill="none" stroke="#3b5bdb" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
+<path d="M 828 218 L 828 250" fill="none" stroke="#5b6480" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow-muted)"/>
+<rect x="738" y="252" width="180" height="74" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
+<circle cx="754" cy="269" r="9" fill="#3b5bdb"/>
+<text x="754" y="273" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">4</text>
+<text x="770" y="274" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">404</text>
+<text x="750" y="292" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#b35c00" text-anchor="start">EMPLOYEE_NOT_FOUND</text>
+<text x="750" y="308" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">no row with this id</text>
+<text x="750" y="322" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">AND company_id</text>
+<path d="M 918 289 L 926 289" fill="none" stroke="#5b6480" stroke-width="1.6"/>
+<rect x="738" y="336" width="180" height="60" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
+<circle cx="754" cy="353" r="9" fill="#3b5bdb"/>
+<text x="754" y="357" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">4</text>
+<text x="770" y="358" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">409</text>
+<text x="750" y="376" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#b35c00" text-anchor="start">ALREADY_CONFIRMED</text>
+<text x="750" y="392" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">status = 'confirmed'</text>
+<path d="M 918 366 L 926 366" fill="none" stroke="#5b6480" stroke-width="1.6"/>
+<rect x="738" y="406" width="180" height="60" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
+<circle cx="754" cy="423" r="9" fill="#3b5bdb"/>
+<text x="754" y="427" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">4</text>
+<text x="770" y="428" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">422</text>
+<text x="750" y="446" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#b35c00" text-anchor="start">MAX_PROBATION_EXCEEDED</text>
+<text x="750" y="462" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">total + months &gt; 6</text>
+<path d="M 918 436 L 926 436" fill="none" stroke="#5b6480" stroke-width="1.6"/>
+<rect x="934" y="118" width="180" height="100" rx="8" fill="#e3f4f6" stroke="#0b7285" stroke-width="1.5"/>
+<circle cx="952" cy="139" r="9" fill="#0b7285"/>
+<text x="952" y="143" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">5</text>
+<text x="968" y="144" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">repository.ts</text>
+<text x="948" y="168" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">parameterised SQL,</text>
+<text x="948" y="184" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">scoped by company_id</text>
+<text x="948" y="200" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">→ PostgreSQL 17</text>
+<path d="M 1024 218 L 1024 250" fill="none" stroke="#5b6480" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow-muted)"/>
+<rect x="934" y="252" width="180" height="60" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5" stroke-dasharray="6 4"/>
+<circle cx="950" cy="269" r="9" fill="#0b7285"/>
+<text x="950" y="273" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">5</text>
+<text x="966" y="274" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">422</text>
+<text x="946" y="292" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#b35c00" text-anchor="start">CONSTRAINT_VIOLATION</text>
+<text x="946" y="308" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">CHECK failed (23514)</text>
+<path d="M 1114 282 L 1122 282" fill="none" stroke="#5b6480" stroke-width="1.6"/>
+<rect x="934" y="322" width="180" height="60" rx="8" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5" stroke-dasharray="6 4"/>
+<circle cx="950" cy="339" r="9" fill="#0b7285"/>
+<text x="950" y="343" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">5</text>
+<text x="966" y="344" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#b35c00" text-anchor="start">400</text>
+<text x="946" y="362" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#b35c00" text-anchor="start">VALIDATION_ERROR</text>
+<text x="946" y="378" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">bad date (22007/22008)</text>
+<path d="M 1114 352 L 1122 352" fill="none" stroke="#5b6480" stroke-width="1.6"/>
+<rect x="934" y="392" width="180" height="60" rx="8" fill="#fdeaea" stroke="#c92a2a" stroke-width="1.5"/>
+<circle cx="950" cy="409" r="9" fill="#0b7285"/>
+<text x="950" y="413" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">5</text>
+<text x="966" y="414" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#c92a2a" text-anchor="start">500</text>
+<text x="946" y="432" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#c92a2a" text-anchor="start">INTERNAL_ERROR</text>
+<text x="946" y="448" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">anything else; logged</text>
+<path d="M 1114 422 L 1122 422" fill="none" stroke="#5b6480" stroke-width="1.6"/>
+<path d="M 338 282 L 338 488" fill="none" stroke="#5b6480" stroke-width="1.6" marker-end="url(#arrow-muted)"/>
+<path d="M 534 289 L 534 488" fill="none" stroke="#5b6480" stroke-width="1.6" marker-end="url(#arrow-muted)"/>
+<path d="M 730 282 L 730 488" fill="none" stroke="#5b6480" stroke-width="1.6" marker-end="url(#arrow-muted)"/>
+<path d="M 926 289 L 926 488" fill="none" stroke="#5b6480" stroke-width="1.6" marker-end="url(#arrow-muted)"/>
+<path d="M 1122 282 L 1122 488" fill="none" stroke="#5b6480" stroke-width="1.6" marker-end="url(#arrow-muted)"/>
+<rect x="150" y="490" width="980" height="58" rx="8" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="166" y="514" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="13" font-weight="700" fill="#1b2235" text-anchor="start">errorHandler</text>
+<text x="262" y="514" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#1b2235" text-anchor="start">(src/error-handler.ts): the one place a thrown error becomes a response, always { error: { code, message, details? } }</text>
+<text x="166" y="534" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#5b6480" text-anchor="start">Database backstops and 500s are logged with the Postgres code, constraint and table; the client only gets the generic message.</text>
+<path d="M 150 519 L 75 519 L 75 220" fill="none" stroke="#b35c00" stroke-width="1.6" marker-end="url(#arrow-rejected)"/>
+<text x="28" y="511" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="400" fill="#b35c00" text-anchor="start">error JSON</text>
+<circle cx="34" cy="572" r="9" fill="#3b5bdb"/>
+<text x="34" y="576" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">4</text>
+<circle cx="56" cy="572" r="9" fill="#0b7285"/>
+<text x="56" y="576" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#f6f7fb" text-anchor="middle">5</text>
+<text x="72" y="576" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1b2235" text-anchor="start">On a write these run inside withTransaction (src/db.ts): any throw → ROLLBACK, so a rejected request changes nothing and writes no audit row.</text>
+<rect x="24" y="594" width="14" height="14" rx="3" fill="#e9edfc" stroke="#3b5bdb" stroke-width="1.5"/>
+<text x="44" y="605" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">request / control flow</text>
+<rect x="192.2" y="594" width="14" height="14" rx="3" fill="#e6f4ea" stroke="#2b8a3e" stroke-width="1.5"/>
+<text x="212.2" y="605" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">success (2xx)</text>
+<rect x="305.5" y="594" width="14" height="14" rx="3" fill="#fff1e0" stroke="#b35c00" stroke-width="1.5"/>
+<text x="325.5" y="605" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">rejected (4xx): nothing written</text>
+<rect x="528.6" y="594" width="14" height="14" rx="3" fill="#fdeaea" stroke="#c92a2a" stroke-width="1.5"/>
+<text x="548.6" y="605" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">server error (5xx)</text>
+<rect x="672.4000000000001" y="594" width="14" height="14" rx="3" fill="#e3f4f6" stroke="#0b7285" stroke-width="1.5"/>
+<text x="692.4000000000001" y="605" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">PostgreSQL</text>
+<rect x="767.4000000000001" y="594" width="14" height="14" rx="3" fill="none" stroke="#5b6480" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="787.4000000000001" y="605" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#5b6480" text-anchor="start">dashed: database backstop, unreachable if the app is correct</text>
+</svg>
