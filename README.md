@@ -127,7 +127,3 @@ The full list is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#assumptions).
 - Pagination and an OpenAPI specification
 
 ---
-
-## Time spent
-
-<!-- TODO (author): fill in. -->
