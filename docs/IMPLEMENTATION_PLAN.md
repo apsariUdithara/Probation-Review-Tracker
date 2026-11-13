@@ -50,7 +50,7 @@ Build a small backend service that helps an HR team track employees on probation
 
 ### 1.4 Assumptions
 
-Email A1–A3 to the recruiter in Phase 0, then continue with the defaults. **Do not wait for a reply**: the deadline is too close. If an answer arrives, adjust. All assumptions go in the README.
+No clarification email is sent: every default below is implemented as written. All assumptions go in the README's Assumptions section. A1–A3 (marked ✉) are the ones the brief leaves most open, so the README explains the reasoning for each.
 
 | # | Question | Default implemented | Email? |
 |---|---|---|---|
@@ -582,7 +582,7 @@ Probation-Review-Tracker/
 ├── vitest.config.ts
 ├── docker-compose.yml       postgres:17, healthcheck, named volume
 ├── docker/init-test-db.sql  CREATE DATABASE probation_test
-├── docs/IMPLEMENTATION_PLAN.md   (git-ignored, local only)
+├── docs/IMPLEMENTATION_PLAN.md   (public, linked from the README)
 ├── migrations/<timestamp>_init.sql      the ONLY schema definition
 ├── scripts/
 │   ├── migrate.ts           the ONLY migration runner (dev, tests, CI)
@@ -615,9 +615,9 @@ Probation-Review-Tracker/
 
 ### Phase 0: Setup (MUST, 30–45 min)
 
-- **Objective:** a working TypeScript + Vitest skeleton, and the recruiter email sent.
+- **Objective:** a working TypeScript + Vitest skeleton.
 - **Tasks:**
-  1. Email A1–A3. Don't wait for the reply; build on the defaults.
+  1. `docs/` is public: the plan is committed and linked from the README.
   2. Confirm `.gitignore`.
   3. `npm init`; set `"type": "module"` and `"engines"`.
   4. Install express, pg, zod, plus dev deps: typescript, @types/node, @types/express, @types/pg, vitest, supertest, @types/supertest, node-pg-migrate@9. Check versions with `npm view`.
@@ -634,7 +634,7 @@ Probation-Review-Tracker/
 - **Files:** `package.json`, `package-lock.json`, `tsconfig.json`, `vitest.config.ts`, `.nvmrc`, `.env.example`, `test/unit/placeholder.test.ts`
 - **Concepts:** ES modules; type-stripping rules (no `enum`, `.ts` import extensions, `import type`); why `tsc --noEmit` is separate.
 - **Must pass:** `npm run typecheck`, `npm run test:unit`. `git status` doesn't list `research_notes/` or `reports/`.
-- **Commit:** `chore: scaffold TypeScript, Vitest and npm scripts` (it also adds `.gitignore`; `docs/` stays local because it is git-ignored)
+- **Commit:** `chore: scaffold TypeScript, Vitest and npm scripts` (it also adds `.gitignore`)
 
 ### Phase 1: Database and migrations (MUST, 60–75 min)
 
@@ -812,7 +812,7 @@ Full scope is planned; nothing is cut. Work the phases in order so the repo is a
    - 404-not-403
    - N 0–365, the `dueLater` group and bucket rules
    - 400/401/404/409/422 policy
-6. **Assumptions:** A1–A12, plus any recruiter answers.
+6. **Assumptions:** A1–A12, with the reasoning for A1–A3 spelled out.
 7. **Security note:** the demo headers are not authentication, and the actor is self-reported.
 8. **Testing:** layout, where each required edge case is tested, how to run.
 9. **Next steps:**
@@ -826,5 +826,5 @@ Full scope is planned; nothing is cut. Work the phases in order so the repo is a
    - OpenAPI
    - reminders
    - structured logging
-10. **AI usage:** tools used and what for; what you verified (ran tests, read every line); what you changed or rejected.
+10. **AI usage:** written by the author personally (left as a placeholder in Phase 9).
 11. **Time spent.**
