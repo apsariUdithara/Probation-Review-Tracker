@@ -10,7 +10,7 @@ import {
 } from '../domain/probation.ts';
 import { NotFoundError } from '../errors.ts';
 import { getContext } from '../tenant.ts';
-import { createEmployee, getEmployee, listProbations } from './service.ts';
+import { confirmEmployee, createEmployee, getEmployee, listProbations } from './service.ts';
 
 // HTTP only: validate input with Zod, call the service, choose the status code.
 // A ZodError thrown here becomes 400 VALIDATION_ERROR in the error handler.
@@ -31,6 +31,10 @@ const listProbationsQuery = z.object({
     .pipe(z.int().min(0).max(MAX_WITHIN_DAYS))
     .default(DEFAULT_WITHIN_DAYS),
 });
+
+// No body expected. `.optional()` because Express 5 leaves req.body undefined when no
+// body is sent; strictObject still rejects any field, e.g. { "force": true }.
+const confirmBody = z.strictObject({}).optional();
 
 // A malformed id can't match any employee, so it gets the same 404 as "not found".
 function parseEmployeeId(raw: string): string {
@@ -56,6 +60,12 @@ export function employeeRoutes({ pool, clock }: AppDeps): Router {
   router.get('/employees/:id', async (req, res) => {
     const employee = await getEmployee(pool, getContext(res), parseEmployeeId(req.params.id));
     res.json(employee);
+  });
+
+  router.post('/employees/:id/confirmation', async (req, res) => {
+    const id = parseEmployeeId(req.params.id);
+    confirmBody.parse(req.body);
+    res.json(await confirmEmployee(pool, getContext(res), id));
   });
 
   return router;

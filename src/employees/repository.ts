@@ -1,3 +1,4 @@
+import type pg from 'pg';
 import type { Queryable } from '../db.ts';
 
 // SQL only, always parameterised. Every function takes companyId as its first data
@@ -89,6 +90,39 @@ export async function findEmployee(
     [id, companyId],
   );
   return rows[0] && toEmployee(rows[0]);
+}
+
+// SELECT ... FOR UPDATE: locks the row until the transaction ends. A second request for the
+// same employee waits here, then (READ COMMITTED) re-reads the committed row version.
+// Must be called with a transaction client, not the pool.
+export async function lockEmployee(
+  client: pg.PoolClient,
+  companyId: string,
+  id: string,
+): Promise<Employee | undefined> {
+  const { rows } = await client.query<EmployeeRow>(
+    `SELECT ${EMPLOYEE_COLUMNS} FROM employees WHERE id = $1 AND company_id = $2 FOR UPDATE`,
+    [id, companyId],
+  );
+  return rows[0] && toEmployee(rows[0]);
+}
+
+// The status guard in WHERE is a second safety net behind the lock: if it ever matches
+// no row, something is wrong, so fail loudly (500) instead of writing an audit row.
+export async function markConfirmed(
+  client: pg.PoolClient,
+  companyId: string,
+  id: string,
+  actor: string,
+): Promise<Employee> {
+  const { rows } = await client.query<EmployeeRow>(
+    `UPDATE employees SET status = 'confirmed', confirmed_at = now(), confirmed_by = $3
+     WHERE id = $1 AND company_id = $2 AND status = 'on_probation'
+     RETURNING ${EMPLOYEE_COLUMNS}`,
+    [id, companyId, actor],
+  );
+  if (rows.length !== 1) throw new Error(`markConfirmed expected 1 row, updated ${rows.length}`);
+  return toEmployee(rows[0]!);
 }
 
 export async function listExtensions(

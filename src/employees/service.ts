@@ -1,7 +1,7 @@
 import type pg from 'pg';
 import { withTransaction } from '../db.ts';
 import { bucketFor, type Bucket } from '../domain/probation.ts';
-import { NotFoundError } from '../errors.ts';
+import { ConflictError, NotFoundError } from '../errors.ts';
 import type { RequestContext } from '../tenant.ts';
 import {
   findEmployee,
@@ -9,6 +9,8 @@ import {
   insertEmployee,
   listExtensions,
   listOpenProbations,
+  lockEmployee,
+  markConfirmed,
   type Employee,
   type Extension,
   type OpenProbation,
@@ -33,6 +35,32 @@ export async function createEmployee(
       details: input,
     });
     return employee;
+  });
+}
+
+// Concurrency-safe: the row lock makes a second simultaneous confirm wait, then see
+// 'confirmed' and get 409. Any throw rolls back, so no audit row is written.
+export async function confirmEmployee(
+  pool: pg.Pool,
+  ctx: RequestContext,
+  id: string,
+): Promise<Employee> {
+  return withTransaction(pool, async (client) => {
+    const current = await lockEmployee(client, ctx.companyId, id);
+    if (!current) throw new NotFoundError();
+    if (current.status === 'confirmed') throw new ConflictError();
+
+    const confirmed = await markConfirmed(client, ctx.companyId, id, ctx.actor);
+    await insertAuditEvent(client, ctx.companyId, {
+      employeeId: id,
+      action: 'probation.confirmed',
+      actor: ctx.actor,
+      details: {
+        probationEndDate: current.probationEndDate,
+        totalProbationMonths: current.totalProbationMonths,
+      },
+    });
+    return confirmed;
   });
 }
 
