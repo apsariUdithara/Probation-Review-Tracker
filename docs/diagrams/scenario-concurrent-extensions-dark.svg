@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 876" width="1140" height="876" role="img" aria-labelledby="title desc">
+<title id="title">Scenario: two extensions at once</title>
+<desc id="desc">Sequence diagram. Clients A and B each request a 3-month extension at the same time on an employee with a total of 3. Request A locks the row first and reads total 3; request B blocks on the lock. A passes assertCanExtend(3, 3), updates the total to 6, inserts the extension and audit rows, commits and returns 201. B then re-reads the committed total of 6, fails assertCanExtend(6, 3), rolls back and returns 422 MAX_PROBATION_EXCEEDED.</desc>
+<defs><marker id="arrow-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#e3e7f2"/></marker><marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#98a1bb"/></marker><marker id="arrow-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#38405a"/></marker><marker id="arrow-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#7c95f5"/></marker><marker id="arrow-success" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#5cc477"/></marker><marker id="arrow-rejected" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#f0a34a"/></marker><marker id="arrow-fault" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#f27474"/></marker><marker id="arrow-waiting" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#a58cff"/></marker><marker id="arrow-store" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 z" fill="#4fc1d1"/></marker></defs>
+<rect width="1140" height="876" rx="12" fill="#0f1320"/>
+<text x="24" y="36" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#e3e7f2" text-anchor="start">Scenario: two extensions at once</text>
+<text x="24" y="58" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#98a1bb" text-anchor="start">Both ask for +3 months on an employee whose total is 3. Only one can fit under the 6-month limit.</text>
+<rect x="18" y="80" width="184" height="50" rx="8" fill="#171c2c" stroke="#38405a" stroke-width="1.5"/>
+<text x="110" y="101" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#e3e7f2" text-anchor="middle">Client A</text>
+<text x="110" y="119" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#98a1bb" text-anchor="middle">HTTP</text>
+<path d="M 110 130 L 110 743" fill="none" stroke="#38405a" stroke-width="1.6" stroke-dasharray="5 4"/>
+<rect x="248" y="80" width="184" height="50" rx="8" fill="#1c2547" stroke="#7c95f5" stroke-width="1.5"/>
+<text x="340" y="101" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#e3e7f2" text-anchor="middle">Request A</text>
+<text x="340" y="119" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#98a1bb" text-anchor="middle">extendProbation()</text>
+<path d="M 340 130 L 340 743" fill="none" stroke="#38405a" stroke-width="1.6" stroke-dasharray="5 4"/>
+<rect x="478" y="80" width="184" height="50" rx="8" fill="#0f2e33" stroke="#4fc1d1" stroke-width="1.5"/>
+<text x="570" y="101" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#e3e7f2" text-anchor="middle">PostgreSQL</text>
+<text x="570" y="119" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#98a1bb" text-anchor="middle">employees row (id)</text>
+<path d="M 570 130 L 570 743" fill="none" stroke="#38405a" stroke-width="1.6" stroke-dasharray="5 4"/>
+<rect x="708" y="80" width="184" height="50" rx="8" fill="#1c2547" stroke="#7c95f5" stroke-width="1.5"/>
+<text x="800" y="101" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#e3e7f2" text-anchor="middle">Request B</text>
+<text x="800" y="119" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#98a1bb" text-anchor="middle">extendProbation()</text>
+<path d="M 800 130 L 800 743" fill="none" stroke="#38405a" stroke-width="1.6" stroke-dasharray="5 4"/>
+<rect x="938" y="80" width="184" height="50" rx="8" fill="#171c2c" stroke="#38405a" stroke-width="1.5"/>
+<text x="1030" y="101" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#e3e7f2" text-anchor="middle">Client B</text>
+<text x="1030" y="119" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#98a1bb" text-anchor="middle">HTTP</text>
+<path d="M 1030 130 L 1030 743" fill="none" stroke="#38405a" stroke-width="1.6" stroke-dasharray="5 4"/>
+<rect x="24" y="141" width="1092" height="99" rx="4" fill="none" stroke="#98a1bb" stroke-width="1.5"/>
+<path d="M 24 161 L 78 161 L 88 151 L 88 141" fill="none" stroke="#98a1bb" stroke-width="1.2"/>
+<text x="34" y="156" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="700" fill="#98a1bb" text-anchor="start">par</text>
+<text x="100" y="156" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#98a1bb" text-anchor="start" font-style="italic">sent together</text>
+<rect x="335" y="253" width="10" height="306" rx="2" fill="#1c2547" stroke="#7c95f5" stroke-width="1.5"/>
+<rect x="565" y="253" width="10" height="269" rx="2" fill="#0f2e33" stroke="#4fc1d1" stroke-width="1.5"/>
+<rect x="795" y="327" width="10" height="404" rx="2" fill="#1c2547" stroke="#7c95f5" stroke-width="1.5"/>
+<rect x="795" y="327" width="10" height="284" rx="2" fill="#261e45" stroke="#a58cff" stroke-width="1.5"/>
+<path d="M 115 187 L 333 187" fill="none" stroke="#7c95f5" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
+<text x="225" y="179" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#7c95f5" text-anchor="middle">POST …/extensions { months: 3 }</text>
+<circle cx="92" cy="187" r="9" fill="#7c95f5"/>
+<text x="92" y="191" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f1320" text-anchor="middle">1</text>
+<path d="M 1025 224 L 807 224" fill="none" stroke="#7c95f5" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
+<text x="915" y="216" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#7c95f5" text-anchor="middle">POST …/extensions { months: 3 }</text>
+<circle cx="1048" cy="224" r="9" fill="#7c95f5"/>
+<text x="1048" y="228" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f1320" text-anchor="middle">2</text>
+<path d="M 345 261 L 563 261" fill="none" stroke="#4fc1d1" stroke-width="1.6" marker-end="url(#arrow-store)"/>
+<text x="455" y="253" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#4fc1d1" text-anchor="middle">BEGIN; SELECT … FOR UPDATE</text>
+<circle cx="322" cy="261" r="9" fill="#4fc1d1"/>
+<text x="322" y="265" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f1320" text-anchor="middle">3</text>
+<path d="M 565 298 L 347 298" fill="none" stroke="#98a1bb" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow-muted)"/>
+<text x="455" y="290" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#e3e7f2" text-anchor="middle">total 3</text>
+<path d="M 795 335 L 577 335" fill="none" stroke="#4fc1d1" stroke-width="1.6" marker-end="url(#arrow-store)"/>
+<text x="685" y="327" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#4fc1d1" text-anchor="middle">BEGIN; SELECT … FOR UPDATE</text>
+<circle cx="818" cy="335" r="9" fill="#4fc1d1"/>
+<text x="818" y="339" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f1320" text-anchor="middle">4</text>
+<rect x="590" y="353" width="190" height="30" rx="8" fill="#261e45" stroke="#a58cff" stroke-width="1.5"/>
+<text x="685" y="370" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#a58cff" text-anchor="middle">B waits: row locked by A</text>
+<path d="M 345 399 L 384 399 L 384 421 L 347 421" fill="none" stroke="#7c95f5" stroke-width="1.6" marker-end="url(#arrow-flow)"/>
+<text x="392" y="414" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#7c95f5" text-anchor="start">assertCanExtend(3, 3): 6 ≤ 6</text>
+<circle cx="322" cy="410" r="9" fill="#7c95f5"/>
+<text x="322" y="414" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f1320" text-anchor="middle">5</text>
+<path d="M 345 473 L 563 473" fill="none" stroke="#4fc1d1" stroke-width="1.6" marker-end="url(#arrow-store)"/>
+<text x="455" y="450" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#4fc1d1" text-anchor="middle">UPDATE total = 6; INSERT</text>
+<text x="455" y="465" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#4fc1d1" text-anchor="middle">extension + audit row</text>
+<circle cx="322" cy="473" r="9" fill="#4fc1d1"/>
+<text x="322" y="477" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f1320" text-anchor="middle">6</text>
+<path d="M 345 510 L 563 510" fill="none" stroke="#4fc1d1" stroke-width="1.6" marker-end="url(#arrow-store)"/>
+<text x="455" y="502" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#4fc1d1" text-anchor="middle">COMMIT: lock released</text>
+<circle cx="322" cy="510" r="9" fill="#4fc1d1"/>
+<text x="322" y="514" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f1320" text-anchor="middle">7</text>
+<path d="M 335 547 L 117 547" fill="none" stroke="#5cc477" stroke-width="1.6" marker-end="url(#arrow-success)"/>
+<text x="225" y="539" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#5cc477" text-anchor="middle">201 · total 6</text>
+<circle cx="358" cy="547" r="9" fill="#5cc477"/>
+<text x="358" y="551" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f1320" text-anchor="middle">8</text>
+<path d="M 575 599 L 793 599" fill="none" stroke="#98a1bb" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow-muted)"/>
+<text x="685" y="576" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#e3e7f2" text-anchor="middle">re-read after the wait:</text>
+<text x="685" y="591" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#e3e7f2" text-anchor="middle">total 6</text>
+<path d="M 805 623 L 844 623 L 844 645 L 807 645" fill="none" stroke="#f0a34a" stroke-width="1.6" marker-end="url(#arrow-rejected)"/>
+<text x="852" y="638" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#f0a34a" text-anchor="start">assertCanExtend(6, 3): 9 &gt; 6</text>
+<circle cx="782" cy="634" r="9" fill="#f0a34a"/>
+<text x="782" y="638" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f1320" text-anchor="middle">9</text>
+<path d="M 795 682 L 577 682" fill="none" stroke="#f0a34a" stroke-width="1.6" marker-end="url(#arrow-rejected)"/>
+<text x="685" y="674" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#f0a34a" text-anchor="middle">ROLLBACK: nothing written</text>
+<circle cx="818" cy="682" r="9" fill="#f0a34a"/>
+<text x="818" y="686" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f1320" text-anchor="middle">10</text>
+<path d="M 805 719 L 1023 719" fill="none" stroke="#f0a34a" stroke-width="1.6" marker-end="url(#arrow-rejected)"/>
+<text x="915" y="711" font-family="ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace" font-size="11.5" font-weight="400" fill="#f0a34a" text-anchor="middle">422 MAX_PROBATION_EXCEEDED</text>
+<circle cx="782" cy="719" r="9" fill="#f0a34a"/>
+<text x="782" y="723" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#0f1320" text-anchor="middle">11</text>
+<text x="24" y="775" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#e3e7f2" text-anchor="start">Result: one 201 and one 422; total 6, one extension row, one probation.extended audit row (lifecycle.test.ts).</text>
+<text x="24" y="794" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#98a1bb" text-anchor="start">B checks the limit against the committed total (6), not the total it would have seen without the lock (3).</text>
+<text x="24" y="813" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#98a1bb" text-anchor="start">Without the lock both checks would pass; B’s UPDATE would then wait on A’s row and fail CHECK total ≤ 6 → 422 CONSTRAINT_VIOLATION.</text>
+<rect x="24" y="844" width="14" height="14" rx="3" fill="#1c2547" stroke="#7c95f5" stroke-width="1.5"/>
+<text x="44" y="855" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#98a1bb" text-anchor="start">request / control flow</text>
+<rect x="192.2" y="844" width="14" height="14" rx="3" fill="#15301e" stroke="#5cc477" stroke-width="1.5"/>
+<text x="212.2" y="855" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#98a1bb" text-anchor="start">success (2xx)</text>
+<rect x="305.5" y="844" width="14" height="14" rx="3" fill="#36260f" stroke="#f0a34a" stroke-width="1.5"/>
+<text x="325.5" y="855" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#98a1bb" text-anchor="start">rejected (4xx): nothing written</text>
+<rect x="528.6" y="844" width="14" height="14" rx="3" fill="#261e45" stroke="#a58cff" stroke-width="1.5"/>
+<text x="548.6" y="855" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#98a1bb" text-anchor="start">blocked on a row lock</text>
+<rect x="690.7" y="844" width="14" height="14" rx="3" fill="#0f2e33" stroke="#4fc1d1" stroke-width="1.5"/>
+<text x="710.7" y="855" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#98a1bb" text-anchor="start">PostgreSQL</text>
+<rect x="785.7" y="844" width="14" height="14" rx="3" fill="none" stroke="#98a1bb" stroke-width="1.5"/>
+<text x="805.7" y="855" font-family="'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="400" fill="#98a1bb" text-anchor="start">dashed arrow: reply</text>
+</svg>

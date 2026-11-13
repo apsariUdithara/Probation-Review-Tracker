@@ -732,12 +732,579 @@ function isolation(t: Theme): string {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Sequence-diagram helper for the scenario diagrams: lanes, numbered messages, replies,
+// self-calls, notes, dividers, activation bars and combined fragments (par).
+// ---------------------------------------------------------------------------------------------
+
+type Lane = { name: string; sub: string; role: Role | null };
+
+type SeqStep =
+  | { kind: 'msg'; from: number; to: number; labels: string[]; ink: Ink; n?: number; reply?: boolean }
+  | { kind: 'self'; at: number; label: string; ink: Ink; n?: number }
+  | { kind: 'note'; from: number; to: number; lines: string[]; role: Role }
+  | { kind: 'divider'; label: string };
+
+type SeqSpec = {
+  width: number;
+  title: string;
+  subtitle: string;
+  lanes: Lane[];
+  steps: SeqStep[];
+  activations: { lane: number; from: number; to: number; role: Role }[]; // step indices, inclusive
+  frames?: { from: number; to: number; label: string; text: string }[];
+  notes: string[]; // first line is the headline result
+  legend: Role[];
+  desc: string;
+};
+
+function sequence(t: Theme, spec: SeqSpec): string {
+  const s = new Svg(t);
+  const W = spec.width;
+  const laneX = (i: number) => 110 + (i * (W - 220)) / (spec.lanes.length - 1);
+  s.heading(spec.title, spec.subtitle);
+
+  // Pass 1: layout, so activation bars and frames can be drawn underneath the arrows.
+  const ys: number[] = [];
+  let y = 168;
+  for (const step of spec.steps) {
+    if (step.kind === 'msg') {
+      y += 15 * step.labels.length + 4;
+      ys.push(y);
+      y += 18;
+    } else if (step.kind === 'self') {
+      y += 6;
+      ys.push(y);
+      y += 40;
+    } else if (step.kind === 'note') {
+      ys.push(y);
+      y += 24 + 16 * step.lines.length;
+    } else {
+      y += 8;
+      ys.push(y);
+      y += 26;
+    }
+  }
+  const lifeEnd = y + 6;
+  const stepBottom = (i: number) => {
+    const step = spec.steps[i]!;
+    return ys[i]! + (step.kind === 'self' ? 24 : step.kind === 'note' ? 10 + 16 * step.lines.length : 6);
+  };
+
+  spec.lanes.forEach((lane, i) => {
+    const x = laneX(i);
+    if (lane.role) s.roleBox(x - 92, 80, 184, 50, lane.role);
+    else s.rect(x - 92, 80, 184, 50);
+    s.text(x, 101, lane.name, { size: 13.5, weight: 700, anchor: 'middle' });
+    s.text(x, 119, lane.sub, { size: 11.5, ink: 'muted', anchor: 'middle', mono: lane.role !== null });
+    s.line(x, 130, x, lifeEnd, { ink: 'line', dash: true });
+  });
+
+  for (const f of spec.frames ?? []) {
+    const top = ys[f.from]! - 46;
+    const bottom = stepBottom(f.to) + 10;
+    s.rect(24, top, W - 48, bottom - top, { fill: 'none', stroke: t.muted, rx: 4 });
+    s.path(`M 24 ${top + 20} L 78 ${top + 20} L 88 ${top + 10} L 88 ${top}`, { ink: 'muted', width: 1.2 });
+    s.text(34, top + 15, f.label, { size: 11.5, weight: 700, ink: 'muted', mono: true });
+    s.text(100, top + 15, f.text, { size: 11.5, ink: 'muted', italic: true });
+  }
+
+  for (const a of spec.activations) {
+    const top = ys[a.from]! - 8;
+    s.roleBox(laneX(a.lane) - 5, top, 10, stepBottom(a.to) + 6 - top, a.role, { rx: 2 });
+  }
+
+  spec.steps.forEach((step, i) => {
+    const sy = ys[i]!;
+    if (step.kind === 'msg') {
+      const from = laneX(step.from);
+      const to = laneX(step.to);
+      const dir = Math.sign(to - from);
+      const ink = step.reply ? 'muted' : step.ink;
+      s.line(from + dir * 5, sy, to - dir * 7, sy, { ink: step.reply ? step.ink : ink, arrow: true, dash: step.reply });
+      const labelInk: Ink = step.ink === 'muted' ? 'ink' : step.ink;
+      step.labels.forEach((l, j) =>
+        s.text((from + to) / 2, sy - 8 - (step.labels.length - 1 - j) * 15, l, {
+          size: 11.5,
+          anchor: 'middle',
+          mono: true,
+          ink: step.reply && step.ink === 'muted' ? 'ink' : labelInk,
+        }),
+      );
+      if (step.n !== undefined) {
+        const badgeRole: Role = step.ink in t.role ? (step.ink as Role) : 'flow';
+        s.badge(from - dir * 18, sy, step.n, badgeRole);
+      }
+    } else if (step.kind === 'self') {
+      const x = laneX(step.at);
+      s.path(`M ${x + 5} ${sy} L ${x + 44} ${sy} L ${x + 44} ${sy + 22} L ${x + 7} ${sy + 22}`, {
+        ink: step.ink,
+        arrow: true,
+      });
+      s.text(x + 52, sy + 15, step.label, { size: 11.5, mono: true, ink: step.ink === 'muted' ? 'ink' : step.ink });
+      if (step.n !== undefined) {
+        const badgeRole: Role = step.ink in t.role ? (step.ink as Role) : 'flow';
+        s.badge(x - 18, sy + 11, step.n, badgeRole);
+      }
+    } else if (step.kind === 'note') {
+      const a = laneX(Math.min(step.from, step.to));
+      const b = laneX(Math.max(step.from, step.to));
+      const left = step.from === step.to ? a - 112 : a + 20;
+      const right = step.from === step.to ? a + 112 : b - 20;
+      s.roleBox(left, sy, right - left, 14 + 16 * step.lines.length, step.role);
+      step.lines.forEach((l, j) =>
+        s.text((left + right) / 2, sy + 17 + j * 16, l, {
+          size: j === 0 ? 12 : 11.5,
+          weight: j === 0 ? 600 : 400,
+          ink: j === 0 ? step.role : 'muted',
+          anchor: 'middle',
+          mono: j > 0,
+        }),
+      );
+    } else {
+      s.line(24, sy, W - 24, sy, { ink: 'muted', dash: true, width: 1.2 });
+      const w = step.label.length * 6.6 + 24;
+      s.rect(W / 2 - w / 2, sy - 11, w, 22, { fill: t.bg, stroke: t.muted, rx: 11, width: 1.2 });
+      s.text(W / 2, sy + 4, step.label, { size: 11.5, ink: 'muted', anchor: 'middle', italic: true });
+    }
+  });
+
+  spec.notes.forEach((n, i) =>
+    s.text(24, lifeEnd + 32 + i * 19, n, { size: 12.5, ink: i === 0 ? 'ink' : 'muted', weight: i === 0 ? 600 : 400 }),
+  );
+  const H = lifeEnd + 32 + spec.notes.length * 19 + 44;
+  s.legend(H - 22, spec.legend, [{ label: 'dashed arrow: reply' }]);
+  return s.render(W, H, spec.title, spec.desc);
+}
+
+const CLIENT: Lane = { name: 'Client', sub: 'HTTP', role: null };
+const ROUTES: Lane = { name: 'routes.ts', sub: 'employeeRoutes', role: 'flow' };
+const POSTGRES: Lane = { name: 'PostgreSQL', sub: 'transaction client', role: 'store' };
+
+// ---------------------------------------------------------------------------------------------
+// 5. Create an employee (createEmployee): employee row + audit row in one transaction.
+// ---------------------------------------------------------------------------------------------
+
+function createEmployeeSeq(t: Theme): string {
+  const [C, R, S, D] = [0, 1, 2, 3];
+  return sequence(t, {
+    width: 1100,
+    title: 'Scenario: add an employee',
+    subtitle: 'POST /employees → createEmployee() in src/employees/service.ts. The company comes from X-Company-Id (ctx), never from the body.',
+    lanes: [CLIENT, ROUTES, { name: 'service.ts', sub: 'createEmployee()', role: 'flow' }, POSTGRES],
+    steps: [
+      { kind: 'msg', from: C, to: R, labels: ['POST /employees', '{ name, joinDate, probationMonths }'], ink: 'flow', n: 1 },
+      { kind: 'self', at: R, label: 'createEmployeeBody.parse(req.body)', ink: 'flow', n: 2 },
+      { kind: 'msg', from: R, to: S, labels: ['createEmployee(pool, ctx, input)'], ink: 'flow', n: 3 },
+      { kind: 'msg', from: S, to: D, labels: ['BEGIN'], ink: 'store', n: 4 },
+      { kind: 'msg', from: S, to: D, labels: ['insertEmployee: INSERT INTO employees', 'initial = total = probationMonths'], ink: 'store', n: 5 },
+      { kind: 'msg', from: D, to: S, labels: ['RETURNING …, probation_end_date', '(generated: join_date + months)'], ink: 'muted', reply: true },
+      { kind: 'msg', from: S, to: D, labels: ['insertAuditEvent', "action = 'employee.created'"], ink: 'store', n: 6 },
+      { kind: 'msg', from: S, to: D, labels: ['COMMIT'], ink: 'store', n: 7 },
+      { kind: 'msg', from: S, to: R, labels: ['employee'], ink: 'muted', reply: true },
+      { kind: 'msg', from: R, to: C, labels: ['201 Created', 'Location: /employees/{id}'], ink: 'success', n: 8 },
+    ],
+    activations: [
+      { lane: R, from: 0, to: 9 },
+      { lane: S, from: 2, to: 8 },
+      { lane: D, from: 3, to: 7 },
+    ].map((a) => ({ ...a, role: a.lane === D ? ('store' as Role) : ('flow' as Role) })),
+    notes: [
+      'Result: the employee row and its employee.created audit row are saved together, or not at all.',
+      'Step 2 is strict Zod: a real calendar date (isValidIsoDate), months 1–6, trimmed name; an extra companyId field → 400. It fails before BEGIN, so nothing is written.',
+      'If step 5 or 6 throws, withTransaction (src/db.ts) rolls back: there is never an employee without its audit row.',
+    ],
+    legend: ['flow', 'success', 'store'],
+    desc:
+      'Sequence diagram. The client sends POST /employees with name, joinDate and probationMonths. The route validates the body with createEmployeeBody, then calls createEmployee. ' +
+      'The service opens a transaction, inserts the employee with initial and total months equal to probationMonths, and Postgres returns the row with the generated probation_end_date. ' +
+      'It then inserts an employee.created audit event and commits. The route responds 201 Created with a Location header.',
+  });
+}
+
+// ---------------------------------------------------------------------------------------------
+// 6. Extend a probation (extendProbation), success path. Data from lifecycle.test.ts.
+// ---------------------------------------------------------------------------------------------
+
+function extendSeq(t: Theme): string {
+  const [C, R, S, D] = [0, 1, 2, 3];
+  return sequence(t, {
+    width: 1100,
+    title: 'Scenario: extend a probation',
+    subtitle: 'POST /employees/:id/extensions → extendProbation(). Example: joined 2026-01-15 on 3 months (ends 2026-04-15), extended by 2.',
+    lanes: [CLIENT, ROUTES, { name: 'service.ts', sub: 'extendProbation()', role: 'flow' }, POSTGRES],
+    steps: [
+      { kind: 'msg', from: C, to: R, labels: ['POST /employees/:id/extensions', '{ months: 2, reason }'], ink: 'flow', n: 1 },
+      { kind: 'self', at: R, label: 'parseEmployeeId · extensionBody.parse', ink: 'flow', n: 2 },
+      { kind: 'msg', from: R, to: S, labels: ['extendProbation(pool, ctx, id, input)'], ink: 'flow', n: 3 },
+      { kind: 'msg', from: S, to: D, labels: ['BEGIN', 'lockEmployee: SELECT … FOR UPDATE'], ink: 'store', n: 4 },
+      { kind: 'msg', from: D, to: S, labels: ["on_probation, total 3, ends 2026-04-15"], ink: 'muted', reply: true },
+      { kind: 'self', at: S, label: 'assertCanExtend(3, 2): 5 ≤ 6', ink: 'flow', n: 5 },
+      { kind: 'msg', from: S, to: D, labels: ['addProbationMonths: UPDATE …', 'SET total = total + 2'], ink: 'store', n: 6 },
+      { kind: 'msg', from: D, to: S, labels: ['total 5, ends 2026-06-15', '(recomputed from join_date)'], ink: 'muted', reply: true },
+      { kind: 'msg', from: S, to: D, labels: ['insertExtension', 'previous 2026-04-15 → new 2026-06-15'], ink: 'store', n: 7 },
+      { kind: 'msg', from: S, to: D, labels: ['insertAuditEvent', "'probation.extended' + details"], ink: 'store', n: 8 },
+      { kind: 'msg', from: S, to: D, labels: ['COMMIT'], ink: 'store', n: 9 },
+      { kind: 'msg', from: S, to: R, labels: ['{ employee, extension }'], ink: 'muted', reply: true },
+      { kind: 'msg', from: R, to: C, labels: ['201 { employee, extension }'], ink: 'success', n: 10 },
+    ],
+    activations: [
+      { lane: R, from: 0, to: 12, role: 'flow' },
+      { lane: S, from: 2, to: 11, role: 'flow' },
+      { lane: D, from: 3, to: 10, role: 'store' },
+    ],
+    notes: [
+      'Result: total 5, end date 2026-06-15, one extension row and one probation.extended audit row, all in one transaction.',
+      'Step 5 runs before any write. Exactly 6 is allowed (3 + 3, 4 + 2); over 6 is the next scenario.',
+      'Step 4 locks the row, so a concurrent extend or confirm waits (see the concurrent-extensions scenario).',
+      'Audit details: { months, reason, previousEndDate, newEndDate, newTotal }.',
+    ],
+    legend: ['flow', 'success', 'store'],
+    desc:
+      'Sequence diagram for extending a probation by 2 months. The route validates the id and body, then calls extendProbation. The service begins a transaction and locks the employee row; ' +
+      'Postgres returns status on_probation, total 3, end 2026-04-15. assertCanExtend(3, 2) passes because 5 is at most 6. The service adds 2 months to the total; Postgres recomputes the end date ' +
+      'from the join date as 2026-06-15. It inserts the extension row with previous and new end dates, inserts a probation.extended audit event and commits. The client receives 201 with the employee and the extension.',
+  });
+}
+
+// ---------------------------------------------------------------------------------------------
+// 7. Extension over the 6-month limit (required edge case). Data from lifecycle.test.ts.
+// ---------------------------------------------------------------------------------------------
+
+function extendOverLimitSeq(t: Theme): string {
+  const [C, E, R, S, D] = [0, 1, 2, 3, 4];
+  return sequence(t, {
+    width: 1180,
+    title: 'Scenario: an extension that would go over 6 months',
+    subtitle: 'Required edge case. Example: 4 months, already extended by 2 (total 6, ends 2026-07-15), then +1 is requested.',
+    lanes: [
+      CLIENT,
+      { name: 'errorHandler', sub: 'error-handler.ts', role: 'flow' },
+      ROUTES,
+      { name: 'service.ts', sub: 'extendProbation()', role: 'flow' },
+      POSTGRES,
+    ],
+    steps: [
+      { kind: 'msg', from: C, to: R, labels: ['POST /employees/:id/extensions', '{ months: 1, reason }'], ink: 'flow', n: 1 },
+      { kind: 'self', at: R, label: 'extensionBody.parse: valid', ink: 'flow', n: 2 },
+      { kind: 'msg', from: R, to: S, labels: ['extendProbation(…)'], ink: 'flow', n: 3 },
+      { kind: 'msg', from: S, to: D, labels: ['BEGIN', 'lockEmployee: SELECT … FOR UPDATE'], ink: 'store', n: 4 },
+      { kind: 'msg', from: D, to: S, labels: ['total 6, ends 2026-07-15'], ink: 'muted', reply: true },
+      { kind: 'self', at: S, label: 'assertCanExtend(6, 1): 7 > 6', ink: 'rejected', n: 5 },
+      { kind: 'divider', label: 'BusinessRuleError thrown: no write has happened' },
+      { kind: 'msg', from: S, to: D, labels: ['ROLLBACK (withTransaction)'], ink: 'rejected', n: 6 },
+      { kind: 'msg', from: S, to: R, labels: ['rejects: BusinessRuleError'], ink: 'rejected', reply: true },
+      { kind: 'msg', from: R, to: E, labels: ['Express 5 passes the', 'rejected promise on'], ink: 'rejected', n: 7 },
+      { kind: 'msg', from: E, to: C, labels: ['422', 'MAX_PROBATION_EXCEEDED'], ink: 'rejected', n: 8 },
+    ],
+    activations: [
+      { lane: R, from: 0, to: 9, role: 'flow' },
+      { lane: S, from: 2, to: 8, role: 'flow' },
+      { lane: D, from: 3, to: 7, role: 'store' },
+      { lane: E, from: 9, to: 10, role: 'rejected' },
+    ],
+    notes: [
+      'Result: 422 with "Cannot extend by 1 month(s): current total is 6, which would make 7; the maximum is 6."',
+      'Nothing changed: total still 6, end date 2026-07-15, still one extension, no new audit row (asserted in lifecycle.test.ts).',
+      'Backstop if step 5 were missing: the UPDATE would break CHECK total_probation_months BETWEEN 1 AND 6 → 23514 → 422 CONSTRAINT_VIOLATION.',
+      'A confirmed employee stops one check earlier: ConflictError → 409 ALREADY_CONFIRMED, by the same rollback path.',
+    ],
+    legend: ['flow', 'rejected', 'store'],
+    desc:
+      'Sequence diagram for the over-the-limit case. The employee has a total of 6 months. The client requests a 1-month extension; validation passes and extendProbation begins a transaction and locks the row. ' +
+      'assertCanExtend(6, 1) fails because 7 is more than 6 and throws BusinessRuleError before any write. withTransaction rolls back, the rejected promise reaches errorHandler, ' +
+      'and the client receives 422 MAX_PROBATION_EXCEEDED. The total, end date, extensions and audit log are unchanged.',
+  });
+}
+
+// ---------------------------------------------------------------------------------------------
+// 8. Two +3 extensions at once on a total of 3 (lifecycle.test.ts concurrency test).
+// ---------------------------------------------------------------------------------------------
+
+function concurrentExtendSeq(t: Theme): string {
+  const [CA, RA, D, RB, CB] = [0, 1, 2, 3, 4];
+  return sequence(t, {
+    width: 1140,
+    title: 'Scenario: two extensions at once',
+    subtitle: 'Both ask for +3 months on an employee whose total is 3. Only one can fit under the 6-month limit.',
+    lanes: [
+      { name: 'Client A', sub: 'HTTP', role: null },
+      { name: 'Request A', sub: 'extendProbation()', role: 'flow' },
+      { name: 'PostgreSQL', sub: 'employees row (id)', role: 'store' },
+      { name: 'Request B', sub: 'extendProbation()', role: 'flow' },
+      { name: 'Client B', sub: 'HTTP', role: null },
+    ],
+    steps: [
+      { kind: 'msg', from: CA, to: RA, labels: ['POST …/extensions { months: 3 }'], ink: 'flow', n: 1 },
+      { kind: 'msg', from: CB, to: RB, labels: ['POST …/extensions { months: 3 }'], ink: 'flow', n: 2 },
+      { kind: 'msg', from: RA, to: D, labels: ['BEGIN; SELECT … FOR UPDATE'], ink: 'store', n: 3 },
+      { kind: 'msg', from: D, to: RA, labels: ['total 3'], ink: 'muted', reply: true },
+      { kind: 'msg', from: RB, to: D, labels: ['BEGIN; SELECT … FOR UPDATE'], ink: 'store', n: 4 },
+      { kind: 'note', from: D, to: RB, lines: ['B waits: row locked by A'], role: 'waiting' },
+      { kind: 'self', at: RA, label: 'assertCanExtend(3, 3): 6 ≤ 6', ink: 'flow', n: 5 },
+      { kind: 'msg', from: RA, to: D, labels: ['UPDATE total = 6; INSERT', 'extension + audit row'], ink: 'store', n: 6 },
+      { kind: 'msg', from: RA, to: D, labels: ['COMMIT: lock released'], ink: 'store', n: 7 },
+      { kind: 'msg', from: RA, to: CA, labels: ['201 · total 6'], ink: 'success', n: 8 },
+      { kind: 'msg', from: D, to: RB, labels: ['re-read after the wait:', 'total 6'], ink: 'muted', reply: true },
+      { kind: 'self', at: RB, label: 'assertCanExtend(6, 3): 9 > 6', ink: 'rejected', n: 9 },
+      { kind: 'msg', from: RB, to: D, labels: ['ROLLBACK: nothing written'], ink: 'rejected', n: 10 },
+      { kind: 'msg', from: RB, to: CB, labels: ['422 MAX_PROBATION_EXCEEDED'], ink: 'rejected', n: 11 },
+    ],
+    activations: [
+      { lane: RA, from: 2, to: 9, role: 'flow' },
+      { lane: D, from: 2, to: 8, role: 'store' },
+      { lane: RB, from: 4, to: 13, role: 'flow' },
+      { lane: RB, from: 4, to: 10, role: 'waiting' },
+    ],
+    frames: [{ from: 0, to: 1, label: 'par', text: 'sent together' }],
+    notes: [
+      'Result: one 201 and one 422; total 6, one extension row, one probation.extended audit row (lifecycle.test.ts).',
+      'B checks the limit against the committed total (6), not the total it would have seen without the lock (3).',
+      'Without the lock both checks would pass; B’s UPDATE would then wait on A’s row and fail CHECK total ≤ 6 → 422 CONSTRAINT_VIOLATION.',
+    ],
+    legend: ['flow', 'success', 'rejected', 'waiting', 'store'],
+    desc:
+      'Sequence diagram. Clients A and B each request a 3-month extension at the same time on an employee with a total of 3. Request A locks the row first and reads total 3; request B blocks on the lock. ' +
+      'A passes assertCanExtend(3, 3), updates the total to 6, inserts the extension and audit rows, commits and returns 201. B then re-reads the committed total of 6, fails assertCanExtend(6, 3), ' +
+      'rolls back and returns 422 MAX_PROBATION_EXCEEDED.',
+  });
+}
+
+// ---------------------------------------------------------------------------------------------
+// 9. Building the grouped list (GET /probations), incl. the "ends today" edge case.
+// ---------------------------------------------------------------------------------------------
+
+function probationList(t: Theme): string {
+  const s = new Svg(t);
+  const W = 1140;
+  s.heading(
+    'Scenario: build the grouped list',
+    'GET /probations?withinDays=N → listProbations(). A read: one SELECT on the pool, no transaction. Example: test clock today = 2026-11-13, N = 30.',
+  );
+
+  // Steps 1-4 (a real sequence, numbered).
+  const boxes: { w: number; title: string; lines: string[]; role: Role; mono?: boolean }[] = [
+    { w: 232, title: 'listProbationsQuery', lines: ['withinDays: digits only, 0–365', 'missing → 30', "'', -1, 366, 1.5 → 400"], role: 'flow' },
+    { w: 232, title: 'clock.today()', lines: ["todayIn('Asia/Colombo') via", 'Intl formatToParts', "→ '2026-11-13' (fixed in tests)"], role: 'flow' },
+    {
+      w: 372,
+      title: 'listOpenProbations',
+      lines: [
+        'WHERE company_id = $1',
+        "  AND status = 'on_probation'",
+        '  AND probation_end_date <= $2::date + $3::int',
+        'ORDER BY probation_end_date, name, id',
+        'daysUntilEnd = probation_end_date - $2::date',
+      ],
+      role: 'store',
+      mono: true,
+    },
+    { w: 196, title: 'bucketFor()', lines: ['each row → one group', 'SQL order is kept', 'counts per group'], role: 'flow' },
+  ];
+  let x = 24;
+  const BY = 86;
+  const BH = 132;
+  boxes.forEach((b, i) => {
+    s.roleBox(x, BY, b.w, BH, b.role);
+    s.badge(x + 18, BY + 20, i + 1, b.role);
+    s.text(x + 34, BY + 25, b.title, { mono: true, size: 13, weight: 700 });
+    b.lines.forEach((l, j) =>
+      s.text(x + 14, BY + 50 + j * 16, l, { size: b.mono ? 11 : 12, mono: b.mono, ink: b.mono ? 'ink' : 'muted' }),
+    );
+    if (i < boxes.length - 1) s.line(x + b.w, BY + BH / 2, x + b.w + 18, BY + BH / 2, { ink: 'flow', arrow: true });
+    x += b.w + 20;
+  });
+
+  // Number line for step 4: daysUntilEnd.
+  const AX_Y = 380;
+  const X0 = 80;
+  const PX = 20; // px per day
+  const dx = (d: number) => X0 + (d + 12) * PX; // -12 .. +38
+  s.badge(34, 262, 4);
+  s.text(50, 267, 'bucketFor(daysUntilEnd) on a day axis (N = 30)', { size: 14, weight: 700 });
+  s.text(50, 286, 'The SQL window is probation_end_date ≤ today + N with no lower bound, so overdue rows are always included.', {
+    size: 12,
+    ink: 'muted',
+  });
+
+  const seg = (from: number, to: number, label: string, sub: string, listed: boolean) => {
+    const x1 = from;
+    const x2 = to;
+    if (listed) s.roleBox(x1, AX_Y - 34, x2 - x1, 28, 'flow', { rx: 4 });
+    else s.rect(x1, AX_Y - 34, x2 - x1, 28, { rx: 4, dash: true, fill: 'none', stroke: t.muted });
+    s.text((x1 + x2) / 2, AX_Y - 16, label, { mono: true, size: 11.5, weight: 700, anchor: 'middle', ink: listed ? 'ink' : 'muted' });
+    s.text((x1 + x2) / 2, AX_Y + 42, sub, { size: 11.5, anchor: 'middle', ink: 'muted' });
+  };
+  seg(dx(-12), dx(-0.5), 'overdue', 'below 0, however old', true);
+  seg(dx(-0.5), dx(7.5), 'dueWithin7Days', '0 to 7', true);
+  seg(dx(7.5), dx(30.5), 'dueWithin30Days', '8 to 30', true);
+  seg(dx(30.5), dx(38), 'not listed', 'over N', false);
+  s.line(dx(-12) + 2, AX_Y, dx(38), AX_Y, { ink: 'ink', arrow: true });
+  s.path(`M ${dx(-12) + 14} ${AX_Y - 6} L ${dx(-12) + 2} ${AX_Y} L ${dx(-12) + 14} ${AX_Y + 6}`, { ink: 'ink' });
+  for (const d of [-1, 0, 7, 8, 30, 31]) {
+    s.line(dx(d), AX_Y - 4, dx(d), AX_Y + 4, { ink: 'ink', width: 1.4 });
+    s.text(dx(d), AX_Y + 20, String(d), { size: 11.5, anchor: 'middle', mono: true });
+  }
+  s.text(dx(38) - 4, AX_Y - 42, 'daysUntilEnd →', { size: 11.5, ink: 'muted', anchor: 'end' });
+
+  // Example rows from probations.test.ts, as callouts above the axis.
+  const callout = (d: number, height: number, lines: string[], role: Role | null) => {
+    const cx = dx(d);
+    const top = AX_Y - 34 - height;
+    s.line(cx, top + 4, cx, AX_Y - 36, { ink: role ?? 'muted', width: 1.2 });
+    s.dot(cx, AX_Y, 5, role ?? 'muted');
+    lines.forEach((l, j) =>
+      s.text(cx, top - 4 - (lines.length - 1 - j) * 15, l, {
+        size: 11.5,
+        anchor: 'middle',
+        weight: j === 0 ? 700 : 400,
+        ink: j === 0 ? (role ?? 'muted') : 'muted',
+      }),
+    );
+  };
+  callout(-1, 22, ['ended yesterday', 'joined 2026-08-12 → overdue'], 'flow');
+  callout(0, 70, ['ENDS TODAY (required case)', 'joined 2026-08-13 + 3 months', '→ dueWithin7Days, not overdue'], 'success');
+  callout(30, 22, ['day 30 → dueWithin30Days'], 'flow');
+  callout(31, 70, ['day 31 → not listed', 'when N = 30'], null);
+
+  // dueLater explanation + response
+  const RY = 470;
+  s.rect(24, RY, 520, 120, { dash: true, stroke: t.muted });
+  s.text(38, RY + 22, 'With N > 30 a fourth group appears', { size: 12.5, weight: 700 });
+  [
+    'dueLater: 31 to N days (e.g. N = 60 → days 31–60).',
+    'N = 0 → only overdue and ending today.',
+    'Confirmed employees and other companies never',
+    'reach bucketFor: the WHERE clause removes them.',
+  ].forEach((l, i) => s.text(38, RY + 44 + i * 17, l, { size: 12, ink: 'muted' }));
+
+  s.roleBox(564, RY, 552, 120, 'success');
+  s.text(578, RY + 22, '200 response (all four arrays always present)', { size: 12.5, weight: 700, ink: 'success' });
+  [
+    '{ "asOf": "2026-11-13", "withinDays": 30,',
+    '  "counts": { "overdue": 1, "dueWithin7Days": 1, … },',
+    '  "overdue": [ … ], "dueWithin7Days": [ { …, "daysUntilEnd": 0 } ],',
+    '  "dueWithin30Days": [ … ], "dueLater": [] }',
+  ].forEach((l, i) => s.text(578, RY + 46 + i * 17, l, { size: 11, mono: true }));
+
+  const H = RY + 120 + 56;
+  s.legend(H - 22, ['flow', 'success', 'store'], [{ label: 'dashed: not returned / explanation', dashed: true }]);
+  return s.render(
+    W,
+    H,
+    'Scenario: build the grouped list',
+    'Four steps: 1 the withinDays query is validated (0 to 365, default 30); 2 today is taken from the clock in Asia/Colombo; 3 one SELECT returns unconfirmed probations of this company ending on or before today plus N, ' +
+      'with daysUntilEnd = end date minus today, sorted by end date, name and id; 4 bucketFor puts each row in a group: below 0 overdue, 0 to 7 due within 7 days, 8 to 30 due within 30 days, 31 to N due later. ' +
+      'A probation ending today has daysUntilEnd 0 and is due within 7 days, not overdue. With N = 30 a probation 31 days away is not listed.',
+  );
+}
+
+// ---------------------------------------------------------------------------------------------
+// 10. How probation_end_date is calculated (29 February, clamping, no chaining).
+// ---------------------------------------------------------------------------------------------
+
+function endDate(t: Theme): string {
+  const s = new Svg(t);
+  const W = 1100;
+  s.heading(
+    'Scenario: how the end date is calculated',
+    'Postgres computes it; JavaScript never does month arithmetic. Examples are the ones asserted in schema.test.ts and dates.test.ts.',
+  );
+
+  s.roleBox(24, 80, W - 48, 64, 'store');
+  s.text(
+    40,
+    104,
+    'probation_end_date date GENERATED ALWAYS AS ((join_date + make_interval(months => total_probation_months))::date) STORED',
+    { mono: true, size: 12, weight: 700 },
+  );
+  s.text(40, 128, 'Recomputed on every INSERT and on every UPDATE of total_probation_months. If the day does not exist in the target month, Postgres uses that month’s last day.', {
+    size: 12,
+    ink: 'muted',
+  });
+
+  const pill = (x: number, y: number, date: string, role: Role, dash = false) => {
+    s.roleBox(x, y, 112, 30, role, { rx: 15, dash });
+    s.text(x + 56, y + 20, date, { mono: true, size: 12.5, weight: 700, anchor: 'middle' });
+  };
+
+  // Header
+  const HY = 176;
+  s.text(40, HY, 'join_date', { size: 11.5, weight: 700, ink: 'muted' });
+  s.text(232, HY, 'probation_end_date', { size: 11.5, weight: 700, ink: 'muted' });
+  s.text(400, HY, 'why', { size: 11.5, weight: 700, ink: 'muted' });
+
+  const rows: [string, number, string, string, boolean][] = [
+    ['2024-02-29', 3, '2024-05-29', '29 February join (required case): May has a 29th, so no clamping; joinDate round-trips as "2024-02-29".', false],
+    ['2024-02-29', 6, '2024-08-29', 'Same day of the month, six months on.', false],
+    ['2026-01-15', 3, '2026-04-15', 'The anniversary date (assumption A2).', false],
+    ['2025-08-31', 6, '2026-02-28', 'Clamped: February 2026 has no 29th, 30th or 31st.', true],
+    ['2023-08-31', 6, '2024-02-29', 'Clamped to the leap day: 2024 is a leap year.', true],
+  ];
+  rows.forEach(([join, months, end, why, clamped], i) => {
+    const y = HY + 14 + i * 44;
+    pill(24, y, join, 'store');
+    s.line(136, y + 15, 230, y + 15, { ink: 'flow', arrow: true });
+    s.text(183, y + 9, `+${months} months`, { size: 11, anchor: 'middle', ink: 'flow', mono: true });
+    pill(232, y, end, 'store');
+    if (clamped) s.text(352, y + 20, 'clamped', { size: 11, weight: 700, ink: 'flow' });
+    s.text(400, y + 20, why, { size: 12, ink: clamped ? 'ink' : 'muted' });
+  });
+
+  // No chaining.
+  const CY = HY + 14 + rows.length * 44 + 30;
+  s.text(24, CY, 'Extensions never chain from the old end date', { size: 14, weight: 700 });
+  s.text(24, CY + 20, 'Joined 2025-11-30 on 3 months (ends 2026-02-28, clamped), then extended by 1. The total becomes 4.', {
+    size: 12,
+    ink: 'muted',
+  });
+  const PY = CY + 44;
+  pill(24, PY + 30, '2025-11-30', 'store');
+  // Used: from join_date with the new total.
+  s.path(`M 136 ${PY + 45} L 170 ${PY + 45} L 170 ${PY + 15} L 548 ${PY + 15}`, { ink: 'flow', arrow: true });
+  s.text(190, PY + 8, 'join_date + 4 months (what the generated column does)', { size: 11.5, ink: 'flow', mono: true });
+  pill(550, PY, '2026-03-30', 'success');
+  s.text(674, PY + 20, '✓ correct: the 30th is kept', { size: 12, weight: 700, ink: 'success' });
+  // Not used: chained.
+  s.path(`M 136 ${PY + 45} L 170 ${PY + 45} L 170 ${PY + 75} L 298 ${PY + 75}`, { ink: 'muted', arrow: true, dash: true });
+  s.text(180, PY + 98, '+3 months', { size: 11, ink: 'muted', mono: true });
+  pill(300, PY + 60, '2026-02-28', 'store', true);
+  s.line(412, PY + 75, 548, PY + 75, { ink: 'muted', arrow: true, dash: true });
+  s.text(480, PY + 98, '+1 month', { size: 11, ink: 'muted', mono: true, anchor: 'middle' });
+  pill(550, PY + 60, '2026-03-28', 'fault', true);
+  s.text(674, PY + 80, '✗ chained: the clamp to the 28th is carried forward (not used)', { size: 12, ink: 'fault' });
+
+  const FY = PY + 136;
+  s.text(24, FY, 'Dates stay strings in Node: src/db.ts overrides pg’s DATE parser, so "2024-02-29" is never turned into a local-midnight JS Date,', {
+    size: 12,
+    ink: 'muted',
+  });
+  s.text(24, FY + 18, 'which would serialise as 2024-02-28 in UTC for Asia/Colombo (UTC+05:30).', { size: 12, ink: 'muted' });
+
+  const H = FY + 18 + 52;
+  s.legend(H - 22, ['flow', 'success', 'fault', 'store'], [{ label: 'dashed: the chained calculation, not used', dashed: true }]);
+  return s.render(
+    W,
+    H,
+    'Scenario: how the end date is calculated',
+    'probation_end_date is a Postgres generated column: join_date plus total_probation_months months, recomputed on insert and on every update of the total. ' +
+      'Examples: 2024-02-29 plus 3 months is 2024-05-29 and plus 6 is 2024-08-29; 2026-01-15 plus 3 is 2026-04-15; 2025-08-31 plus 6 is clamped to 2026-02-28; 2023-08-31 plus 6 is clamped to 2024-02-29. ' +
+      'Extensions do not chain: joining 2025-11-30 on 3 months and extending by 1 gives 2026-03-30 (join date plus 4 months), not 2026-03-28 (the old clamped end date plus 1 month).',
+  );
+}
+
+// ---------------------------------------------------------------------------------------------
 
 const DIAGRAMS: Record<string, (t: Theme) => string> = {
   'request-pipeline': pipeline,
   'concurrent-confirm': concurrentConfirm,
   'employee-lifecycle': lifecycle,
   'company-isolation': isolation,
+  'scenario-create-employee': createEmployeeSeq,
+  'scenario-extend-probation': extendSeq,
+  'scenario-extend-over-limit': extendOverLimitSeq,
+  'scenario-concurrent-extensions': concurrentExtendSeq,
+  'scenario-probation-list': probationList,
+  'scenario-end-date': endDate,
 };
 
 const outDir = join(import.meta.dirname, '..', 'docs', 'diagrams');
